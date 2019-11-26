@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.QuestionBankExtMapper">
+    <resultMap id="SearchResultMap" type="com.wdcloud.lms.core.base.vo.ResourceSearchVO" extends="com.wdcloud.lms.core.base.mapper.ResourceMapper.BaseResultMap">
+        <result column="thumbnailUrl" jdbcType="VARCHAR" property="thumbnailUrl" />
+        <result column="author" jdbcType="VARCHAR" property="author" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    </resultMap>
+    <select id="search" resultMap="SearchResultMap">
+        select
+        res.id,
+        res.name,
+        res.star_rating,
+        res.origin_type,
+        res.origin_id,
+        res.description,
+        res.create_time,
+        res_file.thumbnail_url as thumbnailUrl
+        from res_resource as res
+        left join res_resource_file res_file
+        on res.id = res_file.resource_id
+        <where>
+            <if test="name != null">
+                and res.name like concat("%",#{name},"%")
+            </if>
+            <if test="grade != null">
+                <foreach collection="grade" item="item">
+                    and res.grade &amp; pow(2,#{item})
+                </foreach>
+            </if>
+            <if test="type != null">
+                and res.origin_type in
+                <foreach collection="type" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        order by res.create_time desc,res.star_rating
+    </select>
+    <resultMap id="DetailResultMap" type="com.wdcloud.lms.core.base.vo.ResourceDetailVO" extends="com.wdcloud.lms.core.base.mapper.ResourceMapper.BaseResultMap">
+        <result column="file_url" jdbcType="VARCHAR" property="fileUrl"/>
+        <result column="author" jdbcType="VARCHAR" property="author"/>
+        <collection property="tags" ofType="com.wdcloud.lms.core.base.model.ResourceTag" select="getTags" column="id"/>
+    </resultMap>
+
+    <select id="detail" resultMap="DetailResultMap">
+        select
+        res.id,
+        res.name,
+        res.license,
+        res.star_rating,
+        res.origin_type,
+        res.grade,
+        res.description,
+        res.create_time,
+        res_file.file_url
+        from res_resource as res
+        left join res_resource_file res_file
+        on res.id = res_file.resource_id
+        <where>
+            <if test="id != null">
+                and res.id =#{id}
+            </if>
+        </where>
+    </select>
+
+    <select id="getTags" parameterType="long" resultType="com.wdcloud.lms.core.base.model.ResourceTag">
+        select `name` from res_resource_tag where resource_id=#{id}
+    </select>
+</mapper>

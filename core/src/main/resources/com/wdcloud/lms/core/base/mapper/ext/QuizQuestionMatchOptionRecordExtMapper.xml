@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.QuizQuestionMatchOptionRecordExtMapper">
+    <!-- 批量添加-->
+    <insert id="batchInsert" keyProperty="id" useGeneratedKeys="true">
+
+        INSERT INTO cos_quiz_question_match_option_record
+        (
+        `question_match_option_id`,
+        `content`,
+        `quiz_question_record_id`,
+        `quiz_question_option_record_id`,
+        `create_user_id`,
+        `update_user_id`)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+        (   #{item.questionMatchOptionId,jdbcType=BIGINT},
+            #{item.content,jdbcType=VARCHAR},
+            #{item.quizQuestionRecordId,jdbcType=BIGINT},
+            #{item.quizQuestionOptionRecordId,jdbcType=BIGINT},
+            #{item.create_user_id,jdbcType=BIGINT},
+            #{item.update_user_id,jdbcType=BIGINT});
+        </foreach>
+    </insert>
+
+
+    <!-- 批量更新 -->
+
+    <update id="batchUpdate" parameterType="java.util.List">
+        update cos_quiz_question_match_option_record set
+        question_match_option_id=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.questionMatchOptionId,jdbcType=BIGINT}
+        </foreach>
+        ,content=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.content,jdbcType=VARCHAR}
+        </foreach>
+        ,quiz_question_record_id=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.quizQuestionRecordId,jdbcType=BIGINT}
+        </foreach>
+        ,quiz_question_option_record_id=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.quizQuestionOptionRecordId,jdbcType=BIGINT}
+        </foreach>
+        ,update_user_id=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.updateUserId,jdbcType=BIGINT}
+        </foreach>
+        where id  in
+        <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+            #{item.id,jdbcType=BIGINT}
+        </foreach>
+
+    </update>
+
+    <!-- 批量删除 -->
+    <delete id="batchDelete" parameterType="java.util.List">
+            delete from cos_quiz_question_match_option_record where id in
+        <foreach collection="list" item="item" index="index"  open="("
+                 separator="," close=")">
+            #{item.id}
+        </foreach>
+    </delete>
+    <!-- 依据问题ID关联查询 -->
+    <resultMap id="getByquestionIdResultMap" type="com.wdcloud.lms.core.base.vo.QuestionVO" extends="com.wdcloud.lms.core.base.mapper.QuizMapper.BaseResultMap">
+        <result column="questionId" jdbcType="INTEGER" property="questionId"/>
+        <association property="matchOptions" columnPrefix="matchmatchOption_" resultMap="com.wdcloud.lms.core.base.mapper.QuestionMatchOptionMapper.BaseResultMap">
+        </association>
+    </resultMap>
+    <select id="getByquestionId" resultMap="getByquestionIdResultMap">
+
+        SELECT cqs.id,
+        cqs.course_id,
+        cqs.group_id,
+        cqs.type,
+        cqs.title,
+        cqs.content,
+        cqs.correct_comment,
+        cqs.wrong_comment,
+        cqs.general_comment,
+        cqs.is_template,
+        cqs.question_bank_id,
+        cqs.question_template_id,
+        cqs.score,
+        cqs.seq,
+        cqs.create_time,
+        cqs.update_time,
+        cqs.create_user_id,
+        cqs.update_user_id,
+
+        cqso.id as matchOption_id,
+        cqso.question_id as matchOption_question_id,
+        cqso.question_option_id as matchOption_question_option_id,
+        cqso.content as matchOption_content,
+        cqso.seq as matchOption_seq,
+        cqso.create_time as matchOption_create_time,
+        cqso.update_time as matchOption_update_time,
+        cqso.create_user_id as matchOption_create_user_id,
+        cqso.update_user_id as matchOption_update_user_id
+        FROM cos_question as cqs left join cos_question_match_option as cqsmo on cqs.id=cqsmo.question_id
+        <where>
+         cqs.id=#{questionId};
+        </where>
+
+    </select>
+
+
+</mapper>

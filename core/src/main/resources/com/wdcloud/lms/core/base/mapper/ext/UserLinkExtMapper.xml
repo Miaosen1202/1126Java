@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.UserLinkExtMapper">
+    <!-- 批量添加-->
+    <insert id="batchInsert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO sys_user_link
+        (
+        `user_id`,
+        `name`,
+        `url`,
+        `create_user_id`,
+        `update_user_id`
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.userId,jdbcType=BIGINT},
+            #{item.name,jdbcType=VARCHAR},
+            #{item.url,jdbcType=VARCHAR},
+            #{item.createUserId,jdbcType=BIGINT },
+            #{item.updateUserId,jdbcType=BIGINT})
+        </foreach>
+    </insert>
+
+    <!-- 批量更新 -->
+
+    <update id="batchUpdate" parameterType="java.util.List">
+        update sys_user_link set
+        user_id=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.userId,jdbcType=BIGINT}
+        </foreach>
+        ,name=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.name,jdbcType=VARCHAR}
+        </foreach>
+        ,url=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.url,jdbcType=VARCHAR}
+        </foreach>
+           ,update_user_id=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.updateUserId,jdbcType=BIGINT}
+        </foreach>
+        where id in
+        <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+            #{item.id,jdbcType=BIGINT}
+        </foreach>
+
+    </update>
+
+
+
+</mapper>

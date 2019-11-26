@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.ResourceFavoriteExtMapper">
+    
+    <select id="getByUserIdAndTypeAndShareRange" resultMap="com.wdcloud.lms.core.base.mapper.ext.ResourceExtMapper.resourceVOMap">
+        select
+            r.id,
+            ru.share_range,
+            ru.grade,
+            rfile.thumbnail_url,
+            r.origin_type,
+            ru.name,
+            u.full_name,
+            ru.licence,
+            ru.import_count
+            from res_resource_favorite rf
+            left join res_resource r on r.id = rf.resource_id
+            left join res_resource_update ru on ru.resource_id = r.id
+            left join res_resource_file rfile on rfile.resource_id = r.id
+            left join sys_user u on u.id = r.author_id
+            where rfile.type = 1 and rf.user_id = #{userId}
+            <if test="types != null">
+                and r.origin_type in
+                <foreach collection="types" item="type" separator="," open="(" close=")">
+                    #{type}
+                </foreach>
+            </if>
+            order by rf.create_time desc, r.id desc
+    </select>
+</mapper>

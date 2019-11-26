@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.SisImportMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.SisImport">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="batch_code" jdbcType="VARCHAR" property="batchCode" />
+    <result column="org_id" jdbcType="BIGINT" property="orgId" />
+    <result column="start_time" jdbcType="TIMESTAMP" property="startTime" />
+    <result column="end_time" jdbcType="TIMESTAMP" property="endTime" />
+    <result column="is_full_batch_update" jdbcType="INTEGER" property="isFullBatchUpdate" />
+    <result column="is_override_ui_change" jdbcType="INTEGER" property="isOverrideUiChange" />
+    <result column="total_number" jdbcType="INTEGER" property="totalNumber" />
+    <result column="org_number" jdbcType="INTEGER" property="orgNumber" />
+    <result column="term_number" jdbcType="INTEGER" property="termNumber" />
+    <result column="user_number" jdbcType="INTEGER" property="userNumber" />
+    <result column="course_number" jdbcType="INTEGER" property="courseNumber" />
+    <result column="section_number" jdbcType="INTEGER" property="sectionNumber" />
+    <result column="section_user_number" jdbcType="INTEGER" property="sectionUserNumber" />
+    <result column="study_group_set_number" jdbcType="INTEGER" property="studyGroupSetNumber" />
+    <result column="study_group_number" jdbcType="INTEGER" property="studyGroupNumber" />
+    <result column="study_group_user_number" jdbcType="INTEGER" property="studyGroupUserNumber" />
+    <result column="error_number" jdbcType="INTEGER" property="errorNumber" />
+    <result column="op_user_id" jdbcType="BIGINT" property="opUserId" />
+    <result column="op_user_org_tree_id" jdbcType="VARCHAR" property="opUserOrgTreeId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+</mapper>

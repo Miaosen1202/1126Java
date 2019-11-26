@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.QuizQuestionRecordExtMapper">
+
+    <!-- 依据测试ID查询问题相关信息 -->
+    <resultMap id="getQuerstionRecordsResultMap" type="com.wdcloud.lms.core.base.vo.QuizQuestionRecordVO" extends="com.wdcloud.lms.core.base.mapper.QuizQuestionRecordMapper.BaseResultMap">
+        <association property="options" columnPrefix="option_" resultMap="com.wdcloud.lms.core.base.mapper.QuizQuestionOptionRecordMapper.BaseResultMap">
+        </association>
+        <association property="matchoptions" columnPrefix="matchoption_" resultMap="com.wdcloud.lms.core.base.mapper.QuizQuestionMatchOptionRecordMapper.BaseResultMap">
+        </association>
+        <association property="reply" columnPrefix="reply_" resultMap="com.wdcloud.lms.core.base.mapper.QuizQuestionReplyRecordMapper.BaseResultMap">
+        </association>
+    </resultMap>
+    <select id="getQuerstionRecords" resultMap="getQuerstionRecordsResultMap">
+        SELECT
+        cqr.id,
+        cqr.quiz_record_id,
+        cqr.question_id,
+        cqr.group_id,
+        cqr.type,
+        cqr.title,
+        cqr.content,
+        cqr.correct_comment,
+        cqr.wrong_comment,
+        cqr.general_comment,
+        cqr.score,
+        cqr.seq,
+        cqr.grade_score,
+        cqr.create_time,
+        cqr.update_time,
+        cqr.create_user_id,
+        cqr.update_user_id,
+        cqor.id as option_id,
+        cqor.quiz_question_record_id as option_quiz_question_record_id,
+        cqor.question_option_id as option_question_option_id,
+        cqor.code as option_code,
+        cqor.content as option_content,
+        cqor.explanation as option_explanation,
+        cqor.is_correct as option_is_correct,
+        cqor.seq as option_seq,
+        cqor.is_choice as option_is_choice,
+        cqor.create_time as option_create_time,
+        cqor.update_time as option_update_time,
+        cqor.create_user_id as option_create_user_id,
+        cqor.update_user_id as option_update_user_id,
+        cqmor.id as matchoption_id,
+        cqmor.question_match_option_id as matchoption_question_match_option_id,
+        cqmor.content as matchoption_content,
+        cqmor.quiz_question_record_id as matchoption_quiz_question_record_id,
+        cqmor.quiz_question_option_record_id as matchoption_quiz_question_option_record_id,
+        cqmor.create_time as matchoption_create_time,
+        cqmor.update_time as matchoption_update_time,
+        cqmor.create_user_id as matchoption_create_user_id,
+        cqmor.update_user_id as matchoption_update_user_id,
+        cqrr.id as reply_id,
+        cqrr.quiz_question_record_id as reply_quiz_question_record_id,
+        cqrr.reply as reply_reply,
+        cqrr.create_time as reply_create_time,
+        cqrr.update_time as reply_update_time,
+        cqrr.create_user_id as reply_create_user_id,
+        cqrr.update_user_id as reply_update_user_id
+        FROM cos_quiz_question_record as cqr
+        left join cos_quiz_question_option_record as cqor on  cqr.id=cqor.quiz_question_record_id
+        left join cos_quiz_question_match_option_record as cqmor on cqmor.quiz_question_record_id=cqr.id
+        left join cos_quiz_question_reply_record as cqrr on  cqrr.quiz_question_record_id=cqr.id
+        <where>
+            cqr.quiz_record_id=#{quizRecordId}  order by cqr.seq asc
+        </where>
+
+    </select>
+
+    <!-- 答题总分统计-->
+
+    <select id="getTotalRecordScores"   resultType="Integer">
+
+        SELECT  ifnull(sum(cqr.grade_score),0)
+        FROM cos_quiz_question_record as cqr
+        <where>
+            cqr.quiz_record_id=#{quizRecordId}
+        </where>
+
+    </select>
+
+
+
+
+</mapper>

@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.QuizItemExtMapper">
+
+
+    <!-- 依据targetId AND type更新 -->
+    <update id="updateByTargetIdAndType"  parameterType="com.wdcloud.lms.core.base.model.QuizItem">
+            update cos_quiz_item set
+            <if test="quizId!= null">
+                quiz_id=#{quizId},
+            </if>
+            <if test="type!= null">
+                type=#{type},
+             </if>
+            <if test="targetId!= null">
+                target_id=${targetId},
+            </if>
+            <if test="seq!= null">
+                seq=#{seq},
+           </if>
+
+            <if test="updateUserId!= null">
+                    update_user_id=#{updateUserId}
+            </if>
+
+              where target_id = #{targetId} and type=#{type}
+
+    </update>
+
+    <!-- 依据targetId AND type删除 -->
+    <delete id="deleteByTargetIdAndType" parameterType="com.wdcloud.lms.core.base.model.QuizItem">
+            delete from cos_quiz_item where target_id = #{targetId} and type=#{type}
+
+    </delete>
+    <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.QuizItem">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="quiz_id" jdbcType="BIGINT" property="quizId" />
+        <result column="type" jdbcType="INTEGER" property="type" />
+        <result column="target_id" jdbcType="BIGINT" property="targetId" />
+        <result column="seq" jdbcType="INTEGER" property="seq" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+    </resultMap>
+    <select id="getByQuizId" parameterType="com.wdcloud.lms.core.base.model.QuizItem" resultMap="BaseResultMap">
+
+        SELECT cqsi.`id`,
+        cqsi.`quiz_id`,
+        cqsi.`type`,
+        cqsi.`target_id`,
+        cqsi.`seq`,
+        cqsi.`create_time`,
+        cqsi.`update_time`,
+        cqsi.`create_user_id`,
+        cqsi.`update_user_id`
+        FROM cos_quiz_item as cqsi
+        <where>
+            quiz_id=#{quizId} and type=1;
+        </where>
+    </select>
+
+    <select id="getAllByQuizId" parameterType="com.wdcloud.lms.core.base.model.QuizItem" resultMap="BaseResultMap">
+
+        SELECT cqsi.`id`,
+        cqsi.`quiz_id`,
+        cqsi.`type`,
+        cqsi.`target_id`,
+        cqsi.`seq`,
+        cqsi.`create_time`,
+        cqsi.`update_time`,
+        cqsi.`create_user_id`,
+        cqsi.`update_user_id`
+        FROM cos_quiz_item as cqsi
+        <where>
+            quiz_id=#{quizId} order by seq asc;
+        </where>
+    </select>
+
+
+    <!-- 依据测试ID查询问题相关信息 -->
+    <resultMap id="getQuerstionAllInforsResultMap" type="com.wdcloud.lms.core.base.vo.QuizItemVO">
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="quiz_id" jdbcType="BIGINT" property="quizId" />
+        <result column="type" jdbcType="INTEGER" property="type" />
+        <result column="target_id" jdbcType="BIGINT" property="targetId" />
+        <result column="seq" jdbcType="INTEGER" property="seq" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+        <association property="questionGroup" columnPrefix="questionGroup_" resultMap="com.wdcloud.lms.core.base.mapper.QuestionGroupMapper.BaseResultMap">
+        </association>
+        <association property="question" columnPrefix="question_" javaType="com.wdcloud.lms.core.base.vo.QuestionVO">
+            <id column="id" jdbcType="BIGINT" property="id" />
+            <result column="course_id" jdbcType="BIGINT" property="courseId" />
+            <result column="group_id" jdbcType="BIGINT" property="groupId" />
+            <result column="type" jdbcType="INTEGER" property="type" />
+            <result column="title" jdbcType="VARCHAR" property="title" />
+            <result column="is_template" jdbcType="INTEGER" property="isTemplate" />
+            <result column="question_bank_id" jdbcType="BIGINT" property="questionBankId" />
+            <result column="question_template_id" jdbcType="BIGINT" property="questionTemplateId" />
+            <result column="score" jdbcType="INTEGER" property="score" />
+            <result column="seq" jdbcType="INTEGER" property="seq" />
+            <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+            <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+            <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+            <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+            <result column="content" jdbcType="LONGVARCHAR" property="content" />
+            <result column="correct_comment" jdbcType="LONGVARCHAR" property="correctComment" />
+            <result column="wrong_comment" jdbcType="LONGVARCHAR" property="wrongComment" />
+            <result column="general_comment" jdbcType="LONGVARCHAR" property="generalComment" />
+            <collection property="options" columnPrefix="option_" ofType="com.wdcloud.lms.core.base.model.QuestionOption">
+                <result column="id" jdbcType="BIGINT" property="id" />
+                <result column="question_id" jdbcType="BIGINT" property="questionId" />
+                <result column="code" jdbcType="VARCHAR" property="code" />
+                <result column="is_correct" jdbcType="INTEGER" property="isCorrect" />
+                <result column="seq" jdbcType="INTEGER" property="seq" />
+                <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+                <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+                <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+                <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+                <result column="content" jdbcType="LONGVARCHAR" property="content" />
+                <result column="explanation" jdbcType="LONGVARCHAR" property="explanation" />
+            </collection>
+            <collection property="matchoptions" columnPrefix="matchoption_" ofType="com.wdcloud.lms.core.base.model.QuestionMatchOption">
+                <id column="id" jdbcType="BIGINT" property="id" />
+                <result column="question_id" jdbcType="BIGINT" property="questionId" />
+                <result column="question_option_id" jdbcType="BIGINT" property="questionOptionId" />
+                <result column="seq" jdbcType="INTEGER" property="seq" />
+                <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+                <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+                <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+                <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+                <result column="content" jdbcType="LONGVARCHAR" property="content" />
+            </collection>
+        </association>
+
+    </resultMap>
+    <select id="getQuerstionAllInfors" resultMap="getQuerstionAllInforsResultMap">
+
+        SELECT
+        cqsi.id,
+        cqsi.quiz_id,
+        cqsi.type,
+        cqsi.target_id,
+        cqsi.seq,
+        cqsi.create_time,
+        cqsi.update_time,
+        cqsi.create_user_id,
+        cqsi.update_user_id,
+
+        cqsg.id as questionGroup_id,
+        cqsg.quiz_id as questionGroup_quiz_id,
+        cqsg.name as questionGroup_name,
+        cqsg.each_question_score as questionGroup_each_question_score,
+        cqsg.pick_question_number as questionGroup_pick_question_number,
+        cqsg.create_time as questionGroup_create_time,
+        cqsg.update_time as questionGroup_update_time,
+        cqsg.create_user_id as questionGroup_create_user_id,
+        cqsg.update_user_id as questionGroup_update_user_id,
+
+        cqs.id as question_id,
+        cqs.course_id as question_course_id,
+        cqs.group_id as question_group_id,
+        cqs.type as question_type,
+        cqs.title as question_title,
+        cqs.content as question_content,
+        cqs.correct_comment as question_correct_comment,
+        cqs.wrong_comment as question_wrong_comment,
+        cqs.general_comment as question_general_comment,
+        cqs.is_template as question_is_template,
+        cqs.question_bank_id as question_question_bank_id,
+        cqs.question_template_id as question_question_template_id ,
+        cqs.score as question_score,
+        cqs.seq as question_seq,
+        cqs.create_time as question_create_time,
+        cqs.update_time as question_update_time,
+        cqs.create_user_id as question_create_user_id,
+        cqs.update_user_id as question_update_user_id,
+
+        cqso.id as question_option_id,
+        cqso.question_id as question_option_question_id,
+        cqso.code as question_option_code,
+        cqso.content as question_option_content,
+        cqso.explanation as question_option_explanation,
+        cqso.is_correct as question_option_is_correct,
+        cqso.seq as question_option_seq,
+        cqso.create_time as question_option_create_time,
+        cqso.update_time as question_option_update_time,
+        cqso.create_user_id as question_option_create_user_id,
+        cqso.update_user_id as question_option_update_user_id,
+
+        cqsmo.`id` as question_matchoption_id,
+       cqsmo.`question_id` as question_matchoption_question_id,
+        cqsmo.`question_option_id` as question_matchoption_question_option_id,
+        cqsmo.`content` as question_matchoption_content,
+        cqsmo.`seq` as question_matchoption_seq,
+        cqsmo.`create_time` as question_matchoption_create_time,
+        cqsmo.`update_time` as question_matchoption_update_time,
+        cqsmo.`create_user_id` as question_matchoption_create_user_id,
+        cqsmo.`update_user_id` as question_matchoption_update_user_id
+        FROM  cos_quiz_item as cqsi
+          left join cos_question_group as cqsg on  cqsi.target_id=cqsg.id
+          left join cos_question as cqs on  cqsi.target_id=cqs.id
+          left join cos_question_option as cqso on cqs.id=cqso.question_id
+          left join cos_question_match_option as cqsmo on cqs.id=cqsmo.question_id
+
+        <where>
+            cqsi.quiz_id=#{quizId}  order by cqsi.seq asc
+        </where>
+
+    </select>
+
+
+
+    <!-- 获取主观题数目，用于判断是否全部评分或部分评分-->
+
+    <select id="getTotalSubjectiveQuestion"   resultType="Integer">
+
+        SELECT  ifnull(count(*),0)
+        FROM cos_quiz_item as cqsi
+           left join cos_question as cqs on  cqsi.target_id=cqs.id
+        <where>
+            cqsi.quiz_id=#{quizId}
+            and cqs.type in(6,7,8)
+        </where>
+
+    </select>
+
+
+    <!-- 依据问题D查询问题相关信息 -->
+    <resultMap id="getQuerstionByQuestionIdResultMap" type="com.wdcloud.lms.core.base.vo.QuizItemVO">
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="quiz_id" jdbcType="BIGINT" property="quizId" />
+        <result column="type" jdbcType="INTEGER" property="type" />
+        <result column="target_id" jdbcType="BIGINT" property="targetId" />
+        <result column="seq" jdbcType="INTEGER" property="seq" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+        <association property="question" columnPrefix="question_" javaType="com.wdcloud.lms.core.base.vo.QuestionVO">
+            <id column="id" jdbcType="BIGINT" property="id" />
+            <result column="course_id" jdbcType="BIGINT" property="courseId" />
+            <result column="group_id" jdbcType="BIGINT" property="groupId" />
+            <result column="type" jdbcType="INTEGER" property="type" />
+            <result column="title" jdbcType="VARCHAR" property="title" />
+            <result column="is_template" jdbcType="INTEGER" property="isTemplate" />
+            <result column="question_bank_id" jdbcType="BIGINT" property="questionBankId" />
+            <result column="question_template_id" jdbcType="BIGINT" property="questionTemplateId" />
+            <result column="score" jdbcType="INTEGER" property="score" />
+            <result column="seq" jdbcType="INTEGER" property="seq" />
+            <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+            <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+            <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+            <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+            <result column="content" jdbcType="LONGVARCHAR" property="content" />
+            <result column="correct_comment" jdbcType="LONGVARCHAR" property="correctComment" />
+            <result column="wrong_comment" jdbcType="LONGVARCHAR" property="wrongComment" />
+            <result column="general_comment" jdbcType="LONGVARCHAR" property="generalComment" />
+            <collection property="options" columnPrefix="option_" ofType="com.wdcloud.lms.core.base.model.QuestionOption">
+                <result column="id" jdbcType="BIGINT" property="id" />
+                <result column="question_id" jdbcType="BIGINT" property="questionId" />
+                <result column="code" jdbcType="VARCHAR" property="code" />
+                <result column="is_correct" jdbcType="INTEGER" property="isCorrect" />
+                <result column="seq" jdbcType="INTEGER" property="seq" />
+                <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+                <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+                <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+                <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+                <result column="content" jdbcType="LONGVARCHAR" property="content" />
+                <result column="explanation" jdbcType="LONGVARCHAR" property="explanation" />
+            </collection>
+            <collection property="matchoptions" columnPrefix="matchoption_" ofType="com.wdcloud.lms.core.base.model.QuestionMatchOption">
+                <id column="id" jdbcType="BIGINT" property="id" />
+                <result column="question_id" jdbcType="BIGINT" property="questionId" />
+                <result column="question_option_id" jdbcType="BIGINT" property="questionOptionId" />
+                <result column="seq" jdbcType="INTEGER" property="seq" />
+                <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+                <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+                <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+                <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+                <result column="content" jdbcType="LONGVARCHAR" property="content" />
+            </collection>
+        </association>
+
+    </resultMap>
+    <select id="getQuerstionByQuestionId" resultMap="getQuerstionByQuestionIdResultMap">
+
+        SELECT
+        cqsi.id,
+        cqsi.quiz_id,
+        cqsi.type,
+        cqsi.target_id,
+        cqsi.seq,
+        cqsi.create_time,
+        cqsi.update_time,
+        cqsi.create_user_id,
+        cqsi.update_user_id,
+
+        cqs.id as question_id,
+        cqs.course_id as question_course_id,
+        cqs.group_id as question_group_id,
+        cqs.type as question_type,
+        cqs.title as question_title,
+        cqs.content as question_content,
+        cqs.correct_comment as question_correct_comment,
+        cqs.wrong_comment as question_wrong_comment,
+        cqs.general_comment as question_general_comment,
+        cqs.is_template as question_is_template,
+        cqs.question_bank_id as question_question_bank_id,
+        cqs.question_template_id as question_question_template_id ,
+        cqs.score as question_score,
+        cqs.seq as question_seq,
+        cqs.create_time as question_create_time,
+        cqs.update_time as question_update_time,
+        cqs.create_user_id as question_create_user_id,
+        cqs.update_user_id as question_update_user_id,
+
+        cqso.id as question_option_id,
+        cqso.question_id as question_option_question_id,
+        cqso.code as question_option_code,
+        cqso.content as question_option_content,
+        cqso.explanation as question_option_explanation,
+        cqso.is_correct as question_option_is_correct,
+        cqso.seq as question_option_seq,
+        cqso.create_time as question_option_create_time,
+        cqso.update_time as question_option_update_time,
+        cqso.create_user_id as question_option_create_user_id,
+        cqso.update_user_id as question_option_update_user_id,
+
+        cqsmo.`id` as question_matchoption_id,
+        cqsmo.`question_id` as question_matchoption_question_id,
+        cqsmo.`question_option_id` as question_matchoption_question_option_id,
+        cqsmo.`content` as question_matchoption_content,
+        cqsmo.`seq` as question_matchoption_seq,
+        cqsmo.`create_time` as question_matchoption_create_time,
+        cqsmo.`update_time` as question_matchoption_update_time,
+        cqsmo.`create_user_id` as question_matchoption_create_user_id,
+        cqsmo.`update_user_id` as question_matchoption_update_user_id
+        FROM  cos_quiz_item as cqsi
+         left join cos_question as cqs on  cqsi.target_id=cqs.id
+        left join cos_question_option as cqso on cqs.id=cqso.question_id
+        left join cos_question_match_option as cqsmo on cqs.id=cqsmo.question_id
+
+        <where>
+            cqs.id=#{id}
+        </where>
+
+    </select>
+
+    <!-- 获取排序号-->
+
+    <select id="getCurrentSeq"   resultType="Integer">
+
+        SELECT  ifnull(max(cqsi.`seq`),0)
+             FROM cos_quiz_item as cqsi
+        <where>
+            quiz_id=#{quizId}
+        </where>
+
+    </select>
+    <!-- 批量序号更新 -->
+      <update id="batchUpdateSeq" parameterType="java.util.List">
+        update cos_quiz_item set
+        seq=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=INTEGER} then #{item.seq,jdbcType=INTEGER}
+         </foreach>
+
+        where id  in
+        <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+            #{item.id,jdbcType=BIGINT}
+        </foreach>
+
+    </update>
+
+    <!-- 依据quizId删除 -->
+    <delete id="deleteByquizId" parameterType="com.wdcloud.lms.core.base.model.QuizItem">
+        delete from cos_quiz_item where quiz_id = #{quizId}
+
+    </delete>
+
+</mapper>

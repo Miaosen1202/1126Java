@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.SysDictionaryExtMapper">
+
+    <resultMap id="dictionaryAndValueResultMap" type="com.wdcloud.lms.core.base.vo.SysDictionaryAndLocaleValueVo"
+            extends="com.wdcloud.lms.core.base.mapper.SysDictionaryMapper.BaseResultMap">
+        <result property="locale" column="locale"/>
+        <result property="localeName" column="locale_name"/>
+    </resultMap>
+
+    <select id="findSubDictionaryAndLocaleValue" resultMap="dictionaryAndValueResultMap">
+        select s.*,
+         sv.locale,
+         sv.name as locale_name
+        from sys_dictionary s
+        left join sys_dictionary_value sv on s.id = sv.dictionary_id
+        where parent_id in (
+            select id from sys_dictionary where code = #{parentCode}
+        )
+        and sv.locale = #{locale}
+    </select>
+</mapper>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.GenseeLiveExtMapper">
+    <select id="findLiveByCon" resultType="com.wdcloud.lms.core.base.vo.LiveListVO">
+        SELECT
+        l.id id,
+        l.title title,
+        su.id instructorId,
+        su.username instructor,
+        su.avatar_file_id instructorUrl,
+        l.start_time startTime,
+        l.end_time endTime,
+        l.gensee_live_id liveId,
+        l.gensee_panelist_join_url panelistJoinUrl,
+        l.gensee_organizer_token organizerToken,
+        l.gensee_attendee_join_url attendeeJoinUrl,
+        v.gensee_attendee_join_url attendeeJoinUrlOfVod,
+        v.gensee_id vodId,
+        v.gensee_password password
+        FROM
+        gensee_live l
+        LEFT JOIN gensee_vod v ON v.gensee_webcast_id = l.gensee_live_id
+        LEFT JOIN sys_user su ON l.instructor = su.id
+        where l.course_id = #{courseId} and l.is_deleted = 0
+        <if test="title !=null">
+          and l.title like concat('%',#{title},'%')
+        </if>
+        <if test="instructor !=null">
+          and l.instructor = #{instructor}
+        </if>
+        ORDER BY l.start_time desc
+    </select>
+    <select id="findNotStartedLiveByCon" resultType="com.wdcloud.lms.core.base.vo.LiveListVO">
+        SELECT
+        l.id id,
+        l.title title,
+        su.id instructorId,
+        su.username instructor,
+        su.avatar_file_id instructorUrl,
+        l.start_time startTime,
+        l.end_time endTime,
+        l.gensee_live_id liveId,
+        l.gensee_panelist_join_url panelistJoinUrl,
+        l.gensee_organizer_token organizerToken,
+        l.gensee_attendee_join_url attendeeJoinUrl,
+        v.gensee_attendee_join_url attendeeJoinUrlOfVod,
+        v.gensee_id vodId,
+        v.gensee_password password
+        FROM
+        gensee_live l
+        LEFT JOIN gensee_vod v ON v.gensee_webcast_id = l.gensee_live_id
+        LEFT JOIN sys_user su ON l.instructor = su.id
+        where l.course_id = #{courseId} and l.is_deleted = 0
+        <if test="title !=null">
+            and l.title like concat('%',#{title},'%')
+        </if>
+        <if test="instructor !=null">
+            and l.instructor = #{instructor}
+        </if>
+        <![CDATA[ and l.start_time > now()]]>
+        ORDER BY l.start_time desc
+    </select>
+    <select id="findInProgressLiveByCon" resultType="com.wdcloud.lms.core.base.vo.LiveListVO">
+        SELECT
+        l.id id,
+        l.title title,
+        su.id instructorId,
+        su.username instructor,
+        su.avatar_file_id instructorUrl,
+        l.start_time startTime,
+        l.end_time endTime,
+        l.gensee_live_id liveId,
+        l.gensee_panelist_join_url panelistJoinUrl,
+        l.gensee_organizer_token organizerToken,
+        l.gensee_attendee_join_url attendeeJoinUrl,
+        v.gensee_attendee_join_url attendeeJoinUrlOfVod,
+        v.gensee_id vodId,
+        v.gensee_password password
+        FROM
+        gensee_live l
+        LEFT JOIN gensee_vod v ON v.gensee_webcast_id = l.gensee_live_id
+        LEFT JOIN sys_user su ON l.instructor = su.id
+        where l.course_id = #{courseId} and l.is_deleted = 0
+        <if test="title !=null">
+            and l.title like concat('%',#{title},'%')
+        </if>
+        <if test="instructor !=null">
+            and l.instructor = #{instructor}
+        </if>
+        <![CDATA[and l.start_time <= now()
+        and l.end_time >= now()]]>
+        ORDER BY l.start_time desc
+    </select>
+    <select id="findFinishedLiveByCon" resultType="com.wdcloud.lms.core.base.vo.LiveListVO">
+        SELECT
+        l.id id,
+        l.title title,
+        su.id instructorId,
+        su.username instructor,
+        su.avatar_file_id instructorUrl,
+        l.start_time startTime,
+        l.end_time endTime,
+        l.description description,
+        l.gensee_live_id liveId,
+        l.gensee_panelist_join_url panelistJoinUrl,
+        l.gensee_organizer_token organizerToken,
+        l.gensee_attendee_join_url attendeeJoinUrl,
+        v.gensee_attendee_join_url attendeeJoinUrlOfVod,
+        v.gensee_id vodId,
+        v.gensee_password password
+        FROM
+        gensee_live l
+        LEFT JOIN gensee_vod v ON v.gensee_webcast_id = l.gensee_live_id
+        LEFT JOIN sys_user su ON l.instructor = su.id
+        where l.course_id = #{courseId} and l.is_deleted = 0
+        <if test="title !=null">
+            and l.title like concat('%',#{title},'%')
+        </if>
+        <if test="instructor !=null">
+            and l.instructor = #{instructor}
+        </if>
+        <![CDATA[and l.start_time <= now()
+        and l.end_time <= now()]]>
+        ORDER BY l.start_time desc
+    </select>
+    <select id="findLiveDetail" resultType="com.wdcloud.lms.core.base.vo.LiveListVO">
+        SELECT
+            l.id id,
+            l.title title,
+            su.id instructorId,
+            su.username instructor,
+            su.avatar_file_id instructorUrl,
+            l.start_time startTime,
+            l.end_time endTime,
+            l.description description,
+            l.gensee_live_id liveId,
+            l.gensee_panelist_join_url panelistJoinUrl,
+            l.gensee_organizer_token organizerToken,
+            l.gensee_attendee_join_url attendeeJoinUrl,
+            v.gensee_attendee_join_url attendeeJoinUrlOfVod,
+            v.gensee_id vodId,
+            v.gensee_password password,
+            l.course_id courseId
+        FROM
+            gensee_live l
+                LEFT JOIN gensee_vod v ON v.gensee_webcast_id = l.gensee_live_id
+                LEFT JOIN sys_user su ON l.instructor = su.id
+        WHERE
+            l.id = #{id}
+            and l.is_deleted = 0;
+    </select>
+
+    <select id="findGenseeLive" resultType="com.wdcloud.lms.core.base.model.GenseeLive">
+        SELECT DISTINCT
+            (live.gensee_live_id) genseeLiveId
+        FROM
+            gensee_live live
+        WHERE
+          live.end_time IS NOT NULL
+          AND live.gensee_live_id IS NOT NULL
+          AND live.is_deleted = 0
+        <![CDATA[
+          AND live.start_time >= #{start}
+          AND live.start_time < #{end}
+                ]]>
+
+    </select>
+</mapper>

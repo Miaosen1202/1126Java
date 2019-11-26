@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.QuestionExtMapper">
+
+    <!-- 依据问题ID关联查询 -->
+    <resultMap id="getByquestionIdResultMap" type="com.wdcloud.lms.core.base.vo.QuestionVO" extends="com.wdcloud.lms.core.base.mapper.QuizMapper.BaseResultMap">
+        <result column="questionId" jdbcType="INTEGER" property="questionId"/>
+        <association property="quizItem" columnPrefix="quizItem_" resultMap="com.wdcloud.lms.core.base.mapper.QuizItemMapper.BaseResultMap">
+        </association>
+    </resultMap>
+    <select id="getByquestionId" resultMap="getByquestionIdResultMap">
+
+        SELECT cqs.id,
+        cqs.course_id,
+        cqs.group_id,
+        cqs.type,
+        cqs.title,
+        cqs.content,
+        cqs.correct_comment,
+        cqs.wrong_comment,
+        cqs.general_comment,
+        cqs.is_template,
+        cqs.question_bank_id,
+        cqs.question_template_id,
+        cqs.score,
+        cqs.seq,
+        cqs.create_time,
+        cqs.update_time,
+        cqs.create_user_id,
+        cqs.update_user_id,
+        cqsi.id as quizItem_id,
+        cqsi.quiz_id as quizItem_quiz_id,
+        cqsi.type as quizItem_type,
+        cqsi.target_id as quizItem_target_id,
+        cqsi.seq as quizItem_seq,
+        cqsi.create_time as quizItem_create_time,
+        cqsi.update_time as quizItem_update_time,
+        cqsi.create_user_id as quizItem_create_user_id,
+        cqsi.update_user_id as quizItem_update_user_id
+        FROM cos_question as cqs left join cos_quiz_item as cqsi on cqs.id=cqsi.target_id
+        <where>
+            cqs.id=#{questionId} and cqsi.type=1;
+        </where>
+
+    </select>
+    <!-- 依据问题ID关联查询 -->
+    <resultMap id="getByGroupIdResultMap" type="com.wdcloud.lms.core.base.vo.QuestionVO" extends="com.wdcloud.lms.core.base.mapper.QuizMapper.BaseResultMap">
+        <result column="group_id" jdbcType="INTEGER" property="groupId"/>
+
+    </resultMap>
+    <select id="getByGroupId" parameterType="com.wdcloud.lms.core.base.model.Question" resultMap="getByGroupIdResultMap">
+        SELECT cqs.id,
+        cqs.course_id,
+        cqs.group_id,
+        cqs.type,
+        cqs.title,
+        cqs.content,
+        cqs.correct_comment,
+        cqs.wrong_comment,
+        cqs.general_comment,
+        cqs.is_template,
+        cqs.question_bank_id,
+        cqs.question_template_id,
+        cqs.score,
+        cqs.seq,
+        cqs.create_time,
+        cqs.update_time,
+        cqs.create_user_id,
+        cqs.update_user_id
+         FROM cos_question as cqs
+        <where>
+            cqs.group_id=#{groupId};
+        </where>
+
+    </select>
+
+</mapper>

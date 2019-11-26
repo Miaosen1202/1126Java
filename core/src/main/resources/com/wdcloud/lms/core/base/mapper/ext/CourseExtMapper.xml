@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.CourseExtMapper">
+
+    <resultMap id="favoriteResultMap" type="com.wdcloud.lms.core.base.vo.CourseFavoriteVo"
+               extends="com.wdcloud.lms.core.base.mapper.CourseMapper.BaseResultMap">
+        <result column="file_url" property="coverFileUrl"/>
+        <result column="course_alias" property="courseAlias"/>
+        <result column="cover_color" property="coverColor"/>
+        <result column="is_active" property="isActiveToUser"/>
+        <association property="term" columnPrefix="term_" resultMap="com.wdcloud.lms.core.base.mapper.TermMapper.BaseResultMap">
+        </association>
+    </resultMap>
+
+    <select id="findCourseFavorites" resultMap="favoriteResultMap">
+        select
+        c.id,
+        c.name,
+        c.is_concluded,
+        cuser.course_alias,
+        cuser.cover_color,
+        cuser.is_active,
+        c.code,
+        c.description,
+        c.status,
+        c.term_id,
+        c.term_id as term_id,
+        t.name as term_name,
+        t.code as term_code,
+        t.create_time as term_create_time,
+        t.create_user_id as term_create_user_id,
+        t.is_default as term_is_default,
+        t.org_id as term_org_id,
+        t.org_tree_id as term_org_tree_id,
+        t.update_time as term_update_time,
+        t.update_user_id as term_update_user_id,
+        c.cover_file_id,
+        f.file_url
+        from cos_course c
+        join cos_course_config cconfig on c.id = cconfig.course_id
+        join cos_course_user cuser on c.id = cuser.course_id
+        left join sys_user_file f on c.cover_file_id = f.id
+        left join sys_term t on c.term_id = t.id
+        <where>
+            c.is_deleted = 0
+            and cuser.is_favorite = 1
+            and cuser.user_id = #{userId}
+            <if test="status != null">
+                and c.status = #{status}
+            </if>
+            and exists (
+            select * from cos_section_user su
+            where su.course_id = c.id
+            and su.user_id = #{userId}
+            and su.registry_status = #{registryStatus}
+            and su.role_id = #{roleId}
+            )
+        </where>
+        order by cuser.seq, c.publish_time
+    </select>
+
+    <resultMap id="joinedResultMap" type="com.wdcloud.lms.core.base.vo.CourseJoinedVo"
+               extends="com.wdcloud.lms.core.base.mapper.CourseMapper.BaseResultMap">
+        <result column="file_url" property="coverFileUrl"/>
+        <result column="course_alias" property="courseAlias"/>
+        <result column="cover_color" property="coverColor"/>
+        <result column="allow_open_registry" property="allowOpenRegistry"/>
+        <result column="open_registry_code" property="openRegistryCode"/>
+        <result column="is_favorite" property="isFavorite"/>
+        <result column="is_active" property="isActiveToUser"/>
+        <result column="seq" property="seq"/>
+    </resultMap>
+
+    <select id="findCourseJoined" resultMap="joinedResultMap">
+        select
+        c.*,
+        cconfig.allow_open_registry,
+        cconfig.open_registry_code,
+        f.file_url,
+        courseUser.course_alias,
+        courseUser.cover_color,
+        courseUser.is_favorite,
+        courseUser.is_active,
+        courseUser.seq
+        from cos_course c
+        join cos_course_config cconfig on c.id = cconfig.course_id
+        join cos_course_user courseUser on c.id = courseUser.course_id
+        left join sys_user_file f on c.cover_file_id = f.id
+        <where>
+            c.is_deleted = 0
+            and courseUser.user_id = #{userId}
+            <if test="status != null">
+                and c.status = #{status}
+            </if>
+            and exists (
+            select * from cos_section_user su
+            where su.course_id = c.id
+            and su.user_id = #{userId}
+            and su.registry_status = #{registryStatus}
+            and su.role_id = #{roleId}
+            )
+        </where>
+    </select>
+    <resultMap id="getCourseByUserFullNameAndTermIdResultMap" type="com.wdcloud.lms.core.base.vo.CourseListVO"
+               extends="com.wdcloud.lms.core.base.mapper.CourseMapper.BaseResultMap">
+        <result property="orgName" column="orgName"/>
+    </resultMap>
+
+    <select id="getCourseByUsernameAndTermId"
+            resultMap="getCourseByUserFullNameAndTermIdResultMap">
+        select distinct cc.*,so.name as orgName from cos_course cc
+        join cos_section_user csu
+        on cc.id = csu.course_id
+        join sys_user su
+        on csu.user_id = su.id
+        join sys_org so
+        on cc.org_id = so.id
+        where cc.is_deleted=0 and cc.org_tree_id like concat(#{orgTreeId}, "%")
+        <if test="username != null and username != ''">
+            and su.full_name like #{username} and csu.role_id = 2
+        </if>
+        <if test="termId != null and termId != ''">
+            and cc.term_id=#{termId}
+        </if>
+    </select>
+
+    <select id="getCourseByNameAndTermId" resultMap="getCourseByUserFullNameAndTermIdResultMap">
+        select cc.*,so.name as orgName from cos_course cc
+        join sys_org so
+        on cc.org_id = so.id
+        where cc.is_deleted=0 and cc.org_tree_id like concat(#{orgTreeId}, "%")
+        <if test="name != null and name != ''">
+            and cc.name like #{name}
+        </if>
+        <if test="termId != null and termId != ''">
+            and cc.term_id=#{termId}
+        </if>
+    </select>
+
+    <select id="findBySisIds" resultMap="com.wdcloud.lms.core.base.mapper.CourseMapper.BaseResultMap">
+        select *
+        from cos_course c
+        <where>
+            c.org_id in (
+            select id from sys_org where tree_id like concat(#{rootOrgTreeId}, "%")
+            )
+            <if test="sisIds != null and sisIds.size() > 0">
+                and c.sis_id in
+                <foreach collection="sisIds" item="sisId" open="(" close=")" separator=",">
+                    #{sisId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <resultMap id="CoursePublicVoMap" type="com.wdcloud.lms.core.base.vo.CoursePublicVo"
+               extends="com.wdcloud.lms.core.base.mapper.CourseMapper.BaseResultMap">
+        <result property="allowOpenRegistry" column="allow_open_registry" />
+        <result property="coverFileUrl" column="cover_file_url" />
+        <result property="joinedStudentNum" column="joined_student_num" />
+    </resultMap>
+
+    <select id="findPublicCourses" resultMap="CoursePublicVoMap">
+        select
+        c.*,
+        config.allow_open_registry,
+        f.file_url as cover_file_url,
+        (
+        select count(*) from cos_section_user suser
+        where suser.course_id = c.id
+        and suser.user_id = #{userId}
+        and role_id = ${@com.wdcloud.lms.core.base.enums.RoleEnum@STUDENT.getType()}
+        ) as joined_student_num
+        from cos_course c
+        left join cos_course_config config on c.id = config.course_id
+        left join sys_user_file f on f.id = c.cover_file_id
+        <where>
+            c.include_publish_index = ${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()}
+            and c.status = ${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()}
+            <if test="name != null and name != ''">
+                and c.name like concat("%", #{name}, "%")
+            </if>
+            <if test="visibility != null">
+                and c.visibility = #{visibility}
+            </if>
+            <if test="allowOpenRegistry != null">
+                and config.allow_open_registry = #{allowOpenRegistry}
+            </if>
+        </where>
+    </select>
+</mapper>

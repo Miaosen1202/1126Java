@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.UserExtMapper">
+
+
+    <select id="findUserById" resultType="com.wdcloud.lms.core.base.vo.UserVo">
+        select t1.id,
+               t1.full_name nickname,
+               t2.file_url avatarUrl
+        from sys_user t1
+                 left join sys_user_file t2 on t2.id = t1.avatar_user_file_id
+        where t1.id = #{userId}
+    </select>
+
+    <select id="findStudyGroupSetUnjoinedUsers">
+        select *
+        from
+        cos_course_user cuser
+        left join cos_study_group_user guser on cuser.user_id = guser.user_id
+        <where>
+            cuser.course_id = #{courseId}
+            and guser.study_group_set_id = #{studyGroupSetId}
+        </where>
+    </select>
+
+    <select id="findUsers" resultMap="com.wdcloud.lms.core.base.mapper.UserMapper.BaseResultMap">
+        select
+        id,
+        org_id,
+        org_tree_id,
+        username,
+        nickname,
+        full_name,
+        sex,
+        sis_id,
+        email,
+        phone,
+        title,
+        avatar_file_id,
+        avatar_user_file_id,
+        is_registering,
+        language,
+        time_zone,
+        last_login_time,
+        status,
+        create_time,
+        update_time,
+        create_user_id,
+        update_user_id
+        from
+        sys_user u
+        <where>
+            <if test="sisIds != null and sisIds.size() > 0">
+                or (sis_id in
+                <foreach collection="sisIds" item="sisId" separator="," open="(" close=")">
+                    #{sisId}
+                </foreach>
+                  <if test="orgTreeId != null">
+                      and u.org_tree_id like concat(#{orgTreeId}, "%")
+                  </if>
+                )
+            </if>
+            <if test="usernames != null and usernames.size() > 0">
+                or username in
+                <foreach collection="usernames" item="username" separator="," open="(" close=")">
+                    #{username}
+                </foreach>
+            </if>
+            <if test="emails != null and emails.size() > 0">
+                or email in
+                <foreach collection="emails" item="email" separator="," open="(" close=")">
+                    #{email}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="findUsersByIdAndUsername" resultMap="com.wdcloud.lms.core.base.mapper.UserMapper.BaseResultMap">
+        select
+        id,
+        org_id,
+        username,
+        nickname,
+        full_name,
+        sex,
+        sis_id,
+        email,
+        phone,
+        title,
+        avatar_file_id,
+        is_registering,
+        language,
+        time_zone,
+        last_login_time,
+        status,
+        create_time,
+        update_time,
+        create_user_id,
+        update_user_id
+        from
+        sys_user
+        <where>
+            and id in
+            <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+            <if test="username != null and username != ''">
+                and username like concat("%", #{username}, "%")
+            </if>
+        </where>
+    </select>
+
+    <select id="findOrgUsers" resultMap="com.wdcloud.lms.core.base.mapper.UserMapper.BaseResultMap">
+        select
+          id,
+            org_id,
+            username,
+            nickname,
+            full_name,
+            sex,
+            sis_id,
+            email,
+            phone,
+            title,
+            avatar_file_id,
+            is_registering,
+            language,
+            time_zone,
+            last_login_time,
+            status,
+            create_time,
+            update_time,
+            create_user_id,
+            update_user_id
+        from sys_user u
+        <where>
+            u.org_tree_id like concat(#{rootOrgTreeId}, "%")
+            <if test="sisIds != null and sisIds.size() > 0">
+                and u.sis_id in
+                <foreach collection="sisIds" item="sisId" separator="," open="(" close=")">
+                    #{sisId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <!--&lt;!&ndash; 个人中心用户信息设置 &ndash;&gt;-->
+    <!--<update id="userSetting"  parameterType="com.wdcloud.lms.core.base.model.User">-->
+        <!--update sys_user set-->
+        <!--<if test="firstName!= null">-->
+            <!--first_name=#{firstName},-->
+        <!--</if>-->
+        <!--<if test="lastName!= null">-->
+            <!--last_name=#{lastName},-->
+        <!--</if>-->
+        <!--<if test="fullName!= null">-->
+            <!--fullname=#{fullName},-->
+        <!--</if>-->
+        <!--<if test="phone!= null">-->
+            <!--phone=#{phone},-->
+        <!--</if>-->
+        <!--<if test="title!= null">-->
+            <!--title=#{title},-->
+        <!--</if>-->
+        <!--<if test="description!= null">-->
+            <!--description=${description},-->
+        <!--</if>-->
+        <!--<if test="nickname!= null">-->
+            <!--nickname=#{nickname},-->
+        <!--</if>-->
+
+        <!--<if test="language!= null">-->
+            <!--language=#{language},-->
+        <!--</if>-->
+        <!--<if test="timeZone!= null">-->
+            <!--time_zone=#{timeZone},-->
+        <!--</if>-->
+        <!--<if test="password!= null">-->
+            <!--password=#{password},-->
+        <!--</if>-->
+        <!--<if test="updateUserId!= null">-->
+            <!--update_user_id=#{updateUserId},-->
+        <!--</if>-->
+        <!--<if test="avatar_file_id!= null">-->
+            <!--avatar_file_id=#{avatarFileId},-->
+        <!--</if>-->
+        <!--update_time=#{updateTime}-->
+        <!--where id = #{id}-->
+
+    <!--</update>-->
+
+    <!-- 个人中心用户信息查询-->
+    <resultMap id="getUserSettingResultMap" type="com.wdcloud.lms.core.base.vo.UserSettingVo">
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="org_id" jdbcType="BIGINT" property="orgId" />
+        <result column="org_tree_id" jdbcType="VARCHAR" property="orgTreeId" />
+        <result column="username" jdbcType="VARCHAR" property="username" />
+        <result column="password" jdbcType="VARCHAR" property="password" />
+        <result column="nickname" jdbcType="VARCHAR" property="nickname" />
+        <result column="first_name" jdbcType="VARCHAR" property="firstName" />
+        <result column="last_name" jdbcType="VARCHAR" property="lastName" />
+        <result column="full_name" jdbcType="VARCHAR" property="fullName" />
+        <result column="sex" jdbcType="INTEGER" property="sex" />
+        <result column="sis_id" jdbcType="VARCHAR" property="sisId" />
+        <result column="email" jdbcType="VARCHAR" property="email" />
+        <result column="phone" jdbcType="VARCHAR" property="phone" />
+        <result column="avatar_file_id" jdbcType="VARCHAR" property="avatarFileId" />
+        <result column="is_registering" jdbcType="INTEGER" property="isRegistering" />
+        <result column="language" jdbcType="VARCHAR" property="language" />
+        <result column="time_zone" jdbcType="VARCHAR" property="timeZone" />
+        <result column="last_login_time" jdbcType="TIMESTAMP" property="lastLoginTime" />
+        <result column="title" jdbcType="VARCHAR" property="title" />
+        <result column="status" jdbcType="INTEGER" property="status" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+        <result column="description" jdbcType="LONGVARCHAR" property="description" />
+        <association property="links" columnPrefix="link_" resultMap="com.wdcloud.lms.core.base.mapper.UserLinkMapper.BaseResultMap">
+        </association>
+        <association property="emails" columnPrefix="email_" resultMap="com.wdcloud.lms.core.base.mapper.UserEmailMapper.BaseResultMap">
+        </association>
+    </resultMap>
+    <select id="getUserSetting" resultMap="getUserSettingResultMap">
+
+        SELECT
+        su.id,
+        su.org_id,
+        su.username,
+        su.password,
+        su.nickname,
+        su.first_name,
+        su.last_name,
+        su.full_name,
+        su.sex,
+        su.sis_id,
+        su.email,
+        su.phone,
+        su.title,
+        su.avatar_file_id,
+        su.description,
+        su.is_registering,
+        su.language,
+        su.time_zone,
+        su.status,
+        su.create_time,
+        su.update_time,
+        su.create_user_id,
+        su.update_user_id,
+
+        ul.id as link_id,
+        ul.user_id as link_user_id,
+        ul.name as link_name,
+        ul.url as link_url,
+        ul.create_time as link_create_time,
+        ul.update_time as link_update_time,
+        ul.create_user_id as link_create_user_id,
+        ul.update_user_id as link_update_user_id,
+
+        ue.id as email_id,
+        ue.user_id as email_user_id,
+        ue.email as email_email,
+        ue.is_default as email_is_default,
+        ue.create_time as email_create_time,
+        ue.update_time as email_update_time,
+        ue.create_user_id as email_create_user_id,
+        ue.update_user_id as email_update_user_id
+
+        FROM  sys_user as su
+        left join sys_user_link as ul on  ul.user_id=su.id
+        left join sys_user_email as ue on  ue.user_id=su.id
+
+        <where>
+            su.id=#{userId}
+        </where>
+
+    </select>
+
+    <select id="findUsersByCondition" resultMap="com.wdcloud.lms.core.base.mapper.UserMapper.BaseResultMap">
+        select *
+        from
+        sys_user
+        <where>
+            <if test="username != null and username != ''">
+                and username like concat("%", #{username}, "%")
+            </if>
+            <if test="orgTreeId != null and orgTreeId != ''">
+                and org_tree_id like concat(#{orgTreeId}, "%")
+            </if>
+        </where>
+        <if test="orderBy !=null">
+            order by #{orderBy}
+        </if>
+    </select>
+
+    <resultMap id="getUserCourseAndRolesMap" type="com.wdcloud.lms.core.base.vo.AdminUserDetailVO">
+        <result column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="is_active" property="isActive"/>
+        <!--<association property="roles" columnPrefix="csu_"-->
+        <!--resultMap="com.wdcloud.lms.core.base.mapper.SectionUserMapper.BaseResultMap"/>-->
+        <collection property="roles" column="id" ofType="com.wdcloud.lms.core.base.model.SectionUser">
+            <result column="csu_roleId" property="roleId"/>
+        </collection>
+    </resultMap>
+    <select id="getUserCourseAndRoles" resultMap="getUserCourseAndRolesMap">
+        select cc.id,
+               cc.name,
+               ccu.is_active,
+               csu.role_id as csu_roleId
+        from cos_course cc
+                 join cos_section_user csu
+                      on cc.id = csu.course_id
+
+                 join cos_course_user ccu
+                      on cc.id = ccu.course_id
+        where csu.user_id = #{userId}
+    </select>
+    <select id="getUserBySectionTable" resultMap="com.wdcloud.lms.core.base.mapper.UserMapper.BaseResultMap">
+        select distinct su.id,
+                        full_name,
+                        su.avatar_file_id
+        from sys_user su
+                 join cos_section_user csu
+                      on su.id = csu.user_id
+        where csu.role_id = #{roleId}
+          and csu.course_id = #{courseId}
+    </select>
+    <select id="getOrgAdmin" resultMap="com.wdcloud.lms.core.base.mapper.UserMapper.BaseResultMap">
+        select su.*
+        from sys_user su
+                 join sys_org_user sou
+                      on su.id = sou.user_id
+        where sou.org_id = #{orgId}
+          and sou.role_id = ${@com.wdcloud.lms.core.base.enums.RoleEnum@ADMIN.getType()}
+    </select>
+    <resultMap id="orgAdmins" type="com.wdcloud.lms.core.base.vo.AdminUserVo"
+               extends="com.wdcloud.lms.core.base.mapper.UserMapper.BaseResultMap">
+        <result property="userId" column="userId" jdbcType="BIGINT"/>
+        <result property="orgUserId" column="orgUserId" jdbcType="BIGINT"/>
+    </resultMap>
+    <select id="getOrgAdminIncludeChild" resultMap="orgAdmins">
+        select su.id as userId, su.username, sou.id as orgUserId, sou.org_id, sou.org_tree_id
+        from sys_org_user sou
+                 join sys_user su
+                      on sou.user_id = su.id
+        where sou.org_tree_id like concat(#{orgId}, '%')
+          and sou.role_id = ${@com.wdcloud.lms.core.base.enums.RoleEnum@ADMIN.getType()}
+    </select>
+    <select id="findUserListByRole" resultMap="com.wdcloud.lms.core.base.mapper.UserMapper.BaseResultMap">
+        SELECT DISTINCT
+            (su.id),
+            su.username,
+            su.full_name
+        FROM
+            sys_user su
+                LEFT JOIN cos_section_user seu ON seu.user_id = su.id
+        WHERE
+            seu.course_id = #{courseId}
+          AND seu.role_id = #{roleId}
+          AND seu.registry_status = 2;
+    </select>
+</mapper>

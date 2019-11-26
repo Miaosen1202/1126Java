@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.ResourceImportExtMapper">
+
+    <resultMap id="resourceImportVOMap" type="com.wdcloud.lms.core.base.vo.resource.ResourceVO">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="is_remind" jdbcType="INTEGER" property="hasNewNote"/>
+        <result column="origin_type" jdbcType="INTEGER" property="originType"/>
+        <result column="thumbnail_url" jdbcType="VARCHAR" property="thumbnailUrl"/>
+        <result column="full_name" jdbcType="VARCHAR" property="author"/>
+        <result column="share_range" jdbcType="INTEGER" property="shareRange"/>
+        <result column="grade" jdbcType="INTEGER" property="grade"/>
+        <result column="import_count" jdbcType="INTEGER" property="importCount"/>
+        <collection property="tags" ofType="string" javaType="list"
+                    select="com.wdcloud.lms.core.base.mapper.ext.ResourceTagExtMapper.getTagsByResourceId"  column="id">
+        </collection>
+    </resultMap>
+
+    <select id="getCourseByResourceIdAndUserId" resultType="com.wdcloud.lms.core.base.vo.resource.ResourceCourseVO">
+        select
+        c.id,
+        c.name,
+        rv.version
+        from res_resource_import ri
+        left join cos_course c on c.id = ri.course_id
+        left join res_resource r on r.id = ri.resource_id
+        left join res_resource_update ru on ru.resource_id = r.id
+        left join res_resource_version rv on rv.id = ri.version_id
+        where ri.resource_id = #{resourceId} and ri.user_id = #{userId} and c.is_concluded = 0
+        and c.is_deleted = 0 and c.create_user_id = #{userId} and rv.id != ru.version_id
+    </select>
+    <select id="getCourseByNotInResourceAndUserId"  resultType="com.wdcloud.lms.core.base.vo.resource.ResourceCourseVO">
+        select
+            c.id,
+            c.name
+        from cos_course c
+        where c.id not in (
+              select ri.course_id
+              from res_resource_import ri
+              where ri.resource_id = #{resourceId} and ri.user_id = #{userId}
+            ) and c.is_concluded = 0 and c.is_deleted = 0 and c.create_user_id = #{userId}
+    </select>
+
+    <select id="getByUserIdAndTypeAndVersionMessageSort" resultMap="resourceImportVOMap">
+        select
+                r.id,
+                ru.share_range,
+                ru.grade,
+                rfile.thumbnail_url,
+                r.origin_type,
+                ru.name,
+                u.full_name,
+                ru.import_count,
+                rvm.is_remind
+        from res_resource r
+        left join res_resource_update ru on ru.resource_id = r.id
+        left join res_resource_file rfile on rfile.resource_id = r.id
+        left join sys_user u on u.id = r.author_id
+        left join res_resource_version_message rvm on rvm.resource_id = r.id and rvm.user_id=#{userId}
+        where rfile.type = 1 and  rvm.user_id = #{userId} and
+         r.id IN (SELECT resource_id FROM res_resource_import WHERE user_id = #{userId} )
+        <if test="types != null">
+            and r.origin_type in
+            <foreach collection="types" item="type" separator="," open="(" close=")">
+                #{type}
+            </foreach>
+        </if>
+        order by rvm.is_remind desc, r.update_time desc, r.id desc
+    </select>
+
+</mapper>

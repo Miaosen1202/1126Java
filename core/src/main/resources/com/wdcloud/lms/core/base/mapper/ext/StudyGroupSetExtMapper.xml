@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.StudyGroupSetExtMapper">
+
+    <select id="findBySisIds" resultMap="com.wdcloud.lms.core.base.mapper.StudyGroupSetMapper.BaseResultMap">
+        select
+          *
+        from cos_study_group_set
+        <where>
+            and course_id in (
+                select id from cos_course c where c.org_id in (
+                  select id from sys_org where tree_id like concat(#{rootOrgTreeId}, "%")
+                )
+            )
+            <if test="sisIds != null and sisIds.size() > 0">
+                and sis_id in
+                <foreach collection="sisIds" item="sisId" separator="," open="(" close=")">
+                    #{sisId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+</mapper>

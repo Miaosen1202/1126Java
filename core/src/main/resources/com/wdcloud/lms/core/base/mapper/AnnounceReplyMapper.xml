@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.AnnounceReplyMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.AnnounceReply">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="announce_id" jdbcType="BIGINT" property="announceId" />
+    <result column="study_group_id" jdbcType="BIGINT" property="studyGroupId" />
+    <result column="view_count" jdbcType="INTEGER" property="viewCount" />
+    <result column="is_deleted" jdbcType="INTEGER" property="isDeleted" />
+    <result column="announce_reply_id" jdbcType="BIGINT" property="announceReplyId" />
+    <result column="attachment_file_id" jdbcType="BIGINT" property="attachmentFileId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+    <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+    <result column="content" jdbcType="LONGVARCHAR" property="content" />
+  </resultMap>
+</mapper>

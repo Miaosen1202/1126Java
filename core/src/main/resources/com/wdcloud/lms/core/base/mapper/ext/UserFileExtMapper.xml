@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.UserFileExtMapper">
+
+    <select id="findCourseFileNumber" resultType="java.util.Map">
+        select *
+        from sys_user_file
+        <where>
+            is_directory = @com.wdcloud.lms.core.base.enums.Status@YES@statusOf()
+        </where>
+    </select>
+
+    <update id="updateSubTreeId">
+        update sys_user_file
+        set
+          tree_id = concat(#{newRootTreeId}, substring(tree_id, length(#{oldRootTreeId}) + 1)),
+          update_user_id = #{updateUserId}
+        <where>
+            tree_id like #{oldRootTreeId}"%"
+        </where>
+    </update>
+
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_user_file (
+            space_type,
+            course_id,
+            study_group_id,
+            user_id,
+            is_directory,
+            is_system_level,
+            allow_upload,
+            file_name,
+            file_type,
+            file_size,
+            file_url,
+            tree_id,
+            parent_id,
+            access_strategy,
+            start_time,
+            end_time,
+            status,
+            create_user_id,
+            update_user_id
+        ) values
+        <foreach collection="list" item="item" separator=",">
+        (
+            #{item.spaceType},
+            #{item.courseId},
+            #{item.studyGroupId},
+            #{item.userId},
+            #{item.isDirectory},
+            #{item.isSystemLevel},
+            #{item.allowUpload},
+            #{item.fileName},
+            #{item.fileType},
+            #{item.fileSize},
+            #{item.fileUrl},
+            #{item.treeId},
+            #{item.parentId},
+            #{item.accessStrategy},
+            #{item.startTime},
+            #{item.endTime},
+            #{item.status},
+            #{item.createUserId},
+            #{item.updateUserId}
+        )
+        </foreach>
+    </insert>
+    <update id="reviseSubParentId">
+        update sys_user_file f1
+          left join sys_user_file f2
+          on substring(f1.tree_id, 1, length(f1.tree_id) - #{perLevelTreeIdLength}) = f2.tree_id
+          set f1.parent_id = f2.id
+        <where>
+            f1.tree_id like #{rootTreeId}"%"
+            and f2.tree_id like #{rootTreeId}"%"
+        </where>
+    </update>
+    <select id="findFileDetailByModuleItem" resultType="com.wdcloud.lms.core.base.vo.FileDetailVo">
+        SELECT
+            item.id id,
+            item.origin_id originId,
+            item.origin_type originType,
+            item.seq seq,
+            file.id fileId,
+            file.file_name fileName,
+            file.file_type fileType,
+            file.file_size fileSize,
+            file.file_url fileUrl
+        FROM
+            cos_module_item item
+                JOIN sys_user_file file ON item.origin_id = file.id
+                AND item.origin_type = 4
+        WHERE
+            item.id = #{moduleItemId};
+    </select>
+
+    <delete id="batchDelete" parameterType="list">
+        delete
+        from sys_user_file
+        where id in
+        <foreach collection="list" item="item" index="index"  open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+</mapper>

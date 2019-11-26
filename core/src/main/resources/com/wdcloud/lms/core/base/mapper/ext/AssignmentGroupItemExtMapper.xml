@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.AssignmentGroupItemExtMapper">
+    <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.AssignmentGroupItem">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="origin_type" jdbcType="INTEGER" property="originType"/>
+        <result column="origin_id" jdbcType="BIGINT" property="originId"/>
+        <result column="score" jdbcType="INTEGER" property="score"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    </resultMap>
+
+    <select id="getByCourseIdAndOriginType" resultMap="com.wdcloud.lms.core.base.mapper.AssignmentGroupItemMapper.BaseResultMap">
+        select cagi.*
+        from cos_assignment_group cag
+                 left join cos_assignment_group_item cagi on cag.id = cagi.assignment_group_id
+        where cag.course_id = #{courseId} and cagi.origin_type = #{originType}
+    </select>
+
+
+    <select id="findCourseAssignmentGroupItemNumber" resultType="java.util.Map">
+        select
+        course_id as courseId,
+        count(*) as assignmentGroupItemNumber
+        from cos_assignment_group g
+        join cos_assignment_group_item  gi
+        on g.id = gi.assignment_group_id
+        <where>
+            g.course_id in
+            <foreach collection="list" item="id" separator="," open="(" close=")">
+                #{id}
+            </foreach>
+        </where>
+        group by g.course_id
+    </select>
+    <select id="getMaxSeq" resultType="java.lang.Integer">
+        select max(seq) from cos_assignment_group_item where assignment_group_id =#{assignmentGroupId}
+    </select>
+    <select id="getMinSeq" resultType="java.lang.Integer">
+        select min(seq) from cos_assignment_group_item where assignment_group_id =#{assignmentGroupId}
+    </select>
+
+    <select id="findUserUnsubmitItems" resultMap="com.wdcloud.lms.core.base.mapper.AssignmentGroupItemMapper.BaseResultMap">
+        select
+          gi.*
+        from cos_assignment_group g
+        left join cos_assignment_group_item gi on g.id = gi.assignment_group_id
+        left join cos_user_submit_record r on gi.id = r.assignment_group_item_id
+        <where>
+            g.course_id = #{courseId}
+            and r.user_id = #{userId}
+            and r.id is null
+        </where>
+    </select>
+    <update id="updateBatchSeqAndGroupId">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update cos_assignment_group_item
+            <set>
+                seq=${item.seq},
+                assignment_group_id=${item.assignmentGroupId},
+            </set>
+            where id = ${item.id}
+        </foreach>
+    </update>
+
+    <resultMap id="AssignmentGroupItemVoMap" type="com.wdcloud.lms.core.base.vo.UserSubmissionVo"
+            extends="com.wdcloud.lms.core.base.mapper.AssignmentGroupItemMapper.BaseResultMap">
+    </resultMap>
+
+   <!-- <select id="findUserSubmissionSummaryList" resultMap="AssignmentGroupItemVoMap">
+        SELECT
+            cagi.id,cagi.title,cagi.origin_id,cagi.origin_type,cusr.need_grade as needGrade,
+            cau.user_id AS userId,cau.start_time AS startTime,cau.limit_time AS limitTime,
+            cau.end_time AS endTime,cusr.is_overdue AS isOverdue,cau.course_id as courseId
+        FROM
+            cos_assignment_group_item cagi
+        LEFT JOIN cos_assign_user cau ON cau.origin_id=cagi.origin_id and cau.origin_type=cagi.origin_type
+        LEFT JOIN cos_user_submit_record cusr ON cusr.origin_id=cau.origin_id AND cusr.origin_type=cau.origin_type AND cusr.user_id=cau.user_id
+         where
+           cau.course_id=#{courseId} AND  cagi.status = #{status} AND cusr.need_grade=1 AND (
+            cau.user_id in ( #{userIds}) or cusr.study_group_id in (
+				SELECT study_group_id FROM cos_study_group_user where course_id=#{courseId} AND user_id in (#{userIds})
+					)
+           )
+        ORDER BY cau.start_time
+
+    </select>-->
+
+    <select id="findUserIdTask" resultType="java.util.Map">
+      SELECT cagi.id,
+            cagi.title,cagi.status,
+            cau.origin_id as originId,
+            cau.origin_type AS originType,
+            cau.user_id AS userId,cau.start_time AS startTime,cau.limit_time AS limitTime,
+            cau.end_time AS endTime
+        FROM
+            cos_assignment_group_item cagi
+        LEFT JOIN cos_assign_user cau ON cagi.origin_id = cau.origin_id
+        AND cagi.origin_type = cau.origin_type
+        where cau.course_id=#{courseId} and cau.user_id =#{userId}
+        AND  cagi.status = #{status}
+
+    </select>
+    <select id="findAssignmentGroupItemList" resultMap="BaseResultMap">
+        SELECT
+            item.*
+        FROM
+            cos_assignment_group_item item
+        WHERE
+                assignment_group_id IN (
+                SELECT
+                    id
+                FROM
+                    cos_assignment_group
+                WHERE
+                    course_id = #{courseId}
+            ) and item.status = 1
+        <if test="title!=null and title!=''">
+            and item.title like concat('%',#{title},'%')
+        </if>
+    </select>
+    <select id="findAssignmentGroupItemListByCourse" resultMap="BaseResultMap">
+        SELECT
+        item.id,
+        item.title,
+        item.origin_id,
+        item.origin_type
+        FROM
+        cos_assignment_group_item item
+        JOIN cos_assignment_group g ON item.assignment_group_id = g.id
+        WHERE
+        g.course_id = #{courseId}
+        <if test="status!=null">
+        and item.`status` = #{status}
+        </if>
+    </select>
+
+
+</mapper>

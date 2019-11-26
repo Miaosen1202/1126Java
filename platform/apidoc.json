@@ -1,0 +1,8 @@
+{
+  "name": "WD cloud API Document",
+  "title": "WD cloud API",
+  "template": {
+    "withCompare": true,
+    "withGenerator": true
+  }
+}

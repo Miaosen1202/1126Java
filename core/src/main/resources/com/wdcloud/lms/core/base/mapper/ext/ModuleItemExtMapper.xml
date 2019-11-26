@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.ModuleItemExtMapper">
+    <select id="getMaxSeq" resultType="java.lang.Integer">
+        select max(seq)
+        from cos_module_item
+        where module_id = #{moduleId}
+    </select>
+    <select id="getMinSeq" resultType="java.lang.Integer">
+        select min(seq)
+        from cos_module_item
+        where module_id = #{moduleId}
+    </select>
+    <update id="updateBatchSeqAndModuleId">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update cos_module_item
+            <set>
+                seq=${item.seq},
+                module_id=${item.moduleId},
+            </set>
+            where id = ${item.id}
+        </foreach>
+    </update>
+    <select id="getModuleItemByCourse" resultType="com.wdcloud.lms.core.base.model.ModuleItem">
+        SELECT
+            item.id id,
+            item.module_id moduleId,
+            item.title title,
+            item.score score,
+            item. STATUS STATUS,
+            item.origin_type originType,
+            item.origin_id originId,
+            item.indent_level indentLevel,
+            item.seq seq
+        FROM
+            cos_module_item item
+                JOIN cos_module module ON item.module_id = module.id
+        WHERE
+            module.course_id = #{courseId};
+    </select>
+    <select id="getModuleItemCompleteStatusByModuleAndUser" resultType="com.wdcloud.lms.core.base.vo.ModuleItemCompleteVO">
+        SELECT
+            m.id moduleItemId,
+            u.`status` completeStatus
+        FROM
+            cos_module_item m
+                LEFT JOIN cos_module_item_user u ON m.id = u.module_item_id
+        WHERE
+            m.module_id = #{moduleId}
+          AND u.user_id = #{userId};
+    </select>
+</mapper>

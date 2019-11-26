@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.CourseUserJoinPendingExtMapper">
+
+    <!--邀请显示查询-->
+    <resultMap id="getInvitationResultMap" type="com.wdcloud.lms.core.base.vo.CourseUserJoinPendingVO" extends="com.wdcloud.lms.core.base.mapper.CourseUserJoinPendingMapper.BaseResultMap">
+        <association property="course" columnPrefix="course_" resultMap="com.wdcloud.lms.core.base.mapper.CourseMapper.BaseResultMap" >
+        </association>
+        <association property="section" columnPrefix="section_" resultMap="com.wdcloud.lms.core.base.mapper.SectionMapper.BaseResultMap">
+        </association>
+        <association property="pRole" columnPrefix="pRole_"   resultMap="com.wdcloud.lms.core.base.mapper.PRoleMapper.BaseResultMap">
+        </association>
+
+    </resultMap>
+    <select id="getInvitation"  resultMap="getInvitationResultMap">
+
+        SELECT
+        cuj.`id`,
+        cuj.`user_id`,
+        cuj.`course_id`,
+        cuj.`section_id`,
+        cuj.`role_id`,
+        cuj.`section_user_id`,
+        cuj.`public_status`,
+        cuj.`code`,
+        cuj.`create_time`,
+        cuj.`update_time`,
+
+        cos.`id` as course_id,
+        cos.`name` as course_name,
+
+        cs.`id` as section_id,
+        cs.`name` as section_name,
+
+        pr.`id` as pRole_id,
+        pr.`role_name` as pRole_role_name
+        FROM `cos_course_user_join_pending` as cuj,
+             `cos_course` as cos,
+             `cos_section` as cs,
+             `p_role` as pr
+        <where>
+            cuj.`course_id`=cos.`id` and
+            cuj.`section_id`=cs.`id` and
+            cuj.`role_id`=pr.`id` and
+            cuj.`user_id`=#{userId} and
+            cuj.`role_id`=#{roleId}  and
+            cuj.`public_status`=1 order by cuj.`create_time` asc;
+        </where>
+    </select>
+
+
+
+</mapper>

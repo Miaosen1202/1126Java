@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.SisImportStudyGroupUserMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.SisImportStudyGroupUser">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="batch_code" jdbcType="VARCHAR" property="batchCode" />
+    <result column="target_id" jdbcType="BIGINT" property="targetId" />
+    <result column="group_id" jdbcType="VARCHAR" property="groupId" />
+    <result column="user_id" jdbcType="VARCHAR" property="userId" />
+    <result column="operation" jdbcType="VARCHAR" property="operation" />
+    <result column="op_user_id" jdbcType="BIGINT" property="opUserId" />
+    <result column="op_user_org_tree_id" jdbcType="VARCHAR" property="opUserOrgTreeId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+</mapper>

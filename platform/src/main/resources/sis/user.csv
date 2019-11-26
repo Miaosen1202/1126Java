@@ -1,0 +1,4 @@
+sis_id,login_id,password,first_name,last_name,full_name,sortable_name,short_name,email,status,account_id
+SSU_0001,ssu_0001,123456,Angle,Baby,Angle Baby,Angle Baby,AB,ab@gmail.com,active,
+SSU_0002,ssu_0002,123456,Angle2,Baby,Angle2 Baby,Angle2 Baby,A2B,ab2@gmail.com,active,SS_00010001
+SSU_0003,ssu_0003,123456,Tony,Ja,Tony Ja,Tony Ja,TJ,tj@gmail.com,active,SS_000100010001

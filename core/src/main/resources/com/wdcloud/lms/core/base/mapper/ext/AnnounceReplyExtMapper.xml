@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.AnnounceReplyExtMapper">
+
+    <resultMap id="BaseResultMap0" type="com.wdcloud.lms.core.base.model.AnnounceReply">
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="announce_id" jdbcType="BIGINT" property="announceId" />
+        <result column="study_group_id" jdbcType="BIGINT" property="studyGroupId" />
+        <result column="view_count" jdbcType="INTEGER" property="viewCount" />
+        <result column="is_deleted" jdbcType="INTEGER" property="isDeleted" />
+        <result column="announce_reply_id" jdbcType="BIGINT" property="announceReplyId" />
+        <result column="attachment_file_id" jdbcType="BIGINT" property="attachmentFileId" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+        <result column="content" jdbcType="LONGVARCHAR" property="content" />
+    </resultMap>
+    <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.vo.AnnounceReplyVO" extends="BaseResultMap0">
+        <result column="file_name" property="fileName"/>
+        <result column="file_url" property="fileUrl"/>
+        <result column="user_id" property="userId"/>
+        <result column="user_nickname" property="userNickname"/>
+        <result column="user_avatar_file_id" property="userAvatarFileId"/>
+        <result column="user_avatar_name" property="userAvatarName"/>
+        <result column="user_avatar_url" property="userAvatarUrl"/>
+    </resultMap>
+
+    <select id="findReply" resultMap="BaseResultMap">
+        select
+        t1.*,
+        t11.file_name,
+        t11.file_url,
+        t2.id user_id,
+        t2.full_name user_nickname,
+        t2.avatar_user_file_id user_avatar_file_id,
+        t3.file_name user_avatar_name,
+        t3.file_url user_avatar_url,
+        ifnull(t4.id,0) isRead
+        from
+        cos_announce_reply t1
+        left join sys_user_file t11 on t11.id=t1.attachment_file_id
+        join sys_user t2 on t2.id=t1.create_user_id
+        left join sys_user_file t3 on t3.id=t2.avatar_user_file_id
+        left join cos_content_view_record t4 on t4.origin_type=4 and t4.origin_id=t1.id and t4.user_id=#{userId}
+        <where>
+            t1.is_deleted=0
+            and t1.announce_id=#{announceId}
+            <if test="replyId!=null and replyId!=''">
+                and t1.announce_reply_id=#{replyId}
+            </if>
+            <if test="studyGroupId!=null and studyGroupId!=''">
+                and t1.study_group_id=#{studyGroupId}
+            </if>
+            <if test="content!=null and content!=''">
+                and (t1.content like concat('%',#{content},'%')
+                or t2.full_name like concat('%',#{content},'%'))
+            </if>
+            <choose>
+                <when test="isRead==1">and t4.id is not null</when>
+                <when test="isRead==0">and t4.id is null</when>
+            </choose>
+        </where>
+        ORDER BY t1.create_time ASC
+    </select>
+</mapper>

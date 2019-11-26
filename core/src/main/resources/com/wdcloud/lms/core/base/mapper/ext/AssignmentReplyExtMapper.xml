@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.AssignmentReplyExtMapper">
+    <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.UserFile">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="space_type" jdbcType="INTEGER" property="spaceType"/>
+        <result column="course_id" jdbcType="BIGINT" property="courseId"/>
+        <result column="study_group_id" jdbcType="BIGINT" property="studyGroupId"/>
+        <result column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="is_directory" jdbcType="INTEGER" property="isDirectory"/>
+        <result column="is_system_level" jdbcType="INTEGER" property="isSystemLevel"/>
+        <result column="allow_upload" jdbcType="INTEGER" property="allowUpload"/>
+        <result column="file_name" jdbcType="VARCHAR" property="fileName"/>
+        <result column="file_type" jdbcType="VARCHAR" property="fileType"/>
+        <result column="file_size" jdbcType="BIGINT" property="fileSize"/>
+        <result column="file_url" jdbcType="VARCHAR" property="fileUrl"/>
+        <result column="tree_id" jdbcType="VARCHAR" property="treeId"/>
+        <result column="parent_id" jdbcType="BIGINT" property="parentId"/>
+        <result column="access_strategy" jdbcType="INTEGER" property="accessStrategy"/>
+        <result column="start_time" jdbcType="TIMESTAMP" property="startTime"/>
+        <result column="end_time" jdbcType="TIMESTAMP" property="endTime"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId"/>
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId"/>
+    </resultMap>
+
+    <select id="assignmentReplyFile" resultMap="BaseResultMap">
+        select suf.*
+        from sys_user_file suf
+                 join cos_assignment_reply_attachment cara
+                      on cara.file_id = suf.id
+        where cara.assignment_id = #{assignmentId}
+          and cara.assignment_reply_id = #{assignmentReplyId}
+    </select>
+
+    <select id="getAssignmentReply" resultType="java.util.Map">
+        SELECT * FROM cos_assignment_reply
+        WHERE  is_deleted = 0
+        AND submit_time  = #{submitTime}
+        <if test="assignmentId!=null and assignmentId!=''">
+            AND assignment_id  = #{assignmentId}
+        </if>
+        <if test="userId!=null and userId!=''">
+            AND user_id  = #{userId}
+        </if>
+        <if test="studyGroupId != null and studyGroupId != '' or studyGroupId == 0">
+            AND study_group_id  = #{studyGroupId}
+        </if>
+
+        LIMIT 1
+    </select>
+</mapper>

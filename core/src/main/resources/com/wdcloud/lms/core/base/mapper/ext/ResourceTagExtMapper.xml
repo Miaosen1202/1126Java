@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.ResourceTagExtMapper">
+
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        insert into res_resource_tag (
+        resource_id,
+        name,
+        create_user_id,
+        update_user_id
+        ) values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.resourceId},
+            #{item.name},
+            #{item.createUserId},
+            #{item.updateUserId}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getTagsByResourceId" resultType = "java.lang.String">
+        select name
+        from res_resource_tag
+        where resource_id = #{id}
+    </select>
+</mapper>

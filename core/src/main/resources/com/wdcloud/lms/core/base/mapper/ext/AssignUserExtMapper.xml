@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.AssignUserExtMapper">
+    <!-- 用户分配批量添加-->
+    <insert id="batchInsert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO cos_assign_user
+        (
+        `course_id`,
+        `origin_type`,
+        `origin_id`,
+        `user_id`,
+        `limit_time`,
+        `start_time`,
+        `end_time`,
+        `create_user_id`,
+        `update_user_id`
+         )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.courseId,jdbcType=BIGINT},
+            #{item.originType,jdbcType=INTEGER},
+            #{item.originId,jdbcType=BIGINT},
+            #{item.userId,jdbcType=BIGINT},
+            #{item.limitTime,jdbcType=TIMESTAMP},
+            #{item.startTime,jdbcType=TIMESTAMP},
+            #{item.endTime,jdbcType=TIMESTAMP},
+            #{item.createUserId,jdbcType=BIGINT },
+            #{item.updateUserId,jdbcType=BIGINT }
+            )
+        </foreach>
+    </insert>
+
+    <!-- 用户分配批量更新 -->
+
+    <update id="batchUpdate" parameterType="java.util.List">
+        update cos_assign_user set
+        course_id=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.courseId,jdbcType=BIGINT}
+        </foreach>
+        ,origin_type=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.originType,jdbcType=INTEGER}
+        </foreach>
+        ,origin_id=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.originId,jdbcType=BIGINT}
+        </foreach>
+        ,user_id=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.userId,jdbcType=BIGINT}
+        </foreach>
+        ,limit_time=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.limitTime,jdbcType=TIMESTAMP}
+        </foreach>
+        ,start_time=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.startTime,jdbcType=TIMESTAMP}
+        </foreach>
+        ,end_time=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.endTime,jdbcType=TIMESTAMP}
+        </foreach>
+        ,update_time=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.updateTime,jdbcType=TIMESTAMP}
+        </foreach>
+        ,update_user_id=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.updateUserId,jdbcType=BIGINT}
+        </foreach>
+        where id in
+        <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+            #{item.id,jdbcType=BIGINT}
+        </foreach>
+
+    </update>
+
+    <!-- 用户分配批量删除 -->
+    <delete id="batchDelete" parameterType="java.util.List">
+        delete from cos_assign_user where id in
+        <foreach collection="list" item="item" index="index" open="("
+                 separator="," close=")">
+            #{item.id}
+        </foreach>
+    </delete>
+    <select id="userIdByGrade"  resultType="java.util.Map">
+      SELECT
+            cau.course_id as courseId,cau.user_id AS userId,cau.origin_id AS originId,cau.origin_type AS originType,
+            ca.is_include_grade AS isIncludeGrade,cq.type
+        FROM
+            cos_assign_user cau
+        LEFT JOIN cos_assignment ca ON  cau.origin_type=${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@ASSIGNMENT.getType()}
+        and ca.id=cau.origin_id
+        LEFT JOIN cos_quiz cq ON cau.origin_type=${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@QUIZ.getType()}
+        and cau.origin_id=cq.id
+        WHERE
+            cau.user_id = #{userId}
+        AND cau.course_id = #{courseId}
+    </select>
+
+
+</mapper>

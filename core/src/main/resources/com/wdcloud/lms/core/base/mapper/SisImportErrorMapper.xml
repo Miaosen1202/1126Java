@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.SisImportErrorMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.SisImportError">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="batch_code" jdbcType="VARCHAR" property="batchCode" />
+    <result column="file_name" jdbcType="VARCHAR" property="fileName" />
+    <result column="error_code" jdbcType="INTEGER" property="errorCode" />
+    <result column="row_number" jdbcType="BIGINT" property="rowNumber" />
+    <result column="field_name" jdbcType="VARCHAR" property="fieldName" />
+    <result column="field_value" jdbcType="VARCHAR" property="fieldValue" />
+    <result column="op_user_id" jdbcType="BIGINT" property="opUserId" />
+    <result column="op_user_org_tree_id" jdbcType="VARCHAR" property="opUserOrgTreeId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+</mapper>

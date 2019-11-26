@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.GradeMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.Grade">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="course_id" jdbcType="BIGINT" property="courseId" />
+    <result column="assignment_group_item_id" jdbcType="BIGINT" property="assignmentGroupItemId" />
+    <result column="origin_type" jdbcType="INTEGER" property="originType" />
+    <result column="origin_id" jdbcType="BIGINT" property="originId" />
+    <result column="score_type" jdbcType="INTEGER" property="scoreType" />
+    <result column="score" jdbcType="INTEGER" property="score" />
+    <result column="grade_score" jdbcType="INTEGER" property="gradeScore" />
+    <result column="current_score" jdbcType="INTEGER" property="currentScore" />
+    <result column="is_graded" jdbcType="INTEGER" property="isGraded" />
+    <result column="time_limit" jdbcType="INTEGER" property="timeLimit" />
+    <result column="record_id" jdbcType="BIGINT" property="recordId" />
+    <result column="attemps" jdbcType="INTEGER" property="attemps" />
+    <result column="attemps_available" jdbcType="INTEGER" property="attempsAvailable" />
+    <result column="need_grade" jdbcType="INTEGER" property="needGrade" />
+    <result column="is_overdue" jdbcType="INTEGER" property="isOverdue" />
+    <result column="last_submit_time" jdbcType="TIMESTAMP" property="lastSubmitTime" />
+    <result column="submit_count" jdbcType="INTEGER" property="submitCount" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="grader_id" jdbcType="BIGINT" property="graderId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+    <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+  </resultMap>
+</mapper>

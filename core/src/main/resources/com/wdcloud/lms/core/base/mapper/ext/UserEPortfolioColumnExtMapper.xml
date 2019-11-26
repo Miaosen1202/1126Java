@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.UserEPortfolioColumnExtMapper">
+
+    <resultMap id="UserEPortfolioColumnVOMap" type="com.wdcloud.lms.core.base.vo.ePortfolio.UserEPortfolioColumnVO">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"></result>
+        <result column="cover_color" jdbcType="VARCHAR" property="coverColor"></result>
+        <collection property="pages" ofType="com.wdcloud.lms.core.base.vo.ePortfolio.UserEPortfolioPageVO"
+                    select="com.wdcloud.lms.core.base.mapper.ext.UserEPortfolioPageExtMapper.getByEPortfolioColumnId" column="id">
+        </collection>
+    </resultMap>
+
+    <update id="batchUpdateSeq">
+        update sys_user_e_portfolio_column set
+        seq=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=INTEGER} then #{item.seq,jdbcType=INTEGER}
+        </foreach>
+
+        where id  in
+        <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+            #{item.id,jdbcType=BIGINT}
+        </foreach>
+    </update>
+
+    <select id="getById" resultMap="UserEPortfolioColumnVOMap">
+        select
+            id,
+            name,
+            cover_color
+        from sys_user_e_portfolio_column
+        where id = #{id}
+    </select>
+
+    <select id="getMaxSeqByEPortfolioId" resultType="integer">
+        select
+            max(seq)
+        from sys_user_e_portfolio_column ecolumn
+        left join sys_user_e_portfolio portfolio on portfolio.id = ecolumn.e_portfolio_id
+        where portfolio.id = #{ePortfolioId}
+    </select>
+    
+    <select id="getByEPortfolioId" resultType="com.wdcloud.lms.core.base.vo.ePortfolio.UserEPortfolioColumnListVO">
+        select
+            id,
+            name,
+            cover_color coverColor,
+            seq
+        from sys_user_e_portfolio_column
+        where e_portfolio_id = #{ePortfolioId}
+        order by seq asc
+    </select>
+</mapper>

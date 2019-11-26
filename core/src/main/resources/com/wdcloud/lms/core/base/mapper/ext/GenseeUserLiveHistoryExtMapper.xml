@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.GenseeUserLiveHistoryExtMapper">
+    <select id="searchLiveHistory" resultType="com.wdcloud.lms.core.base.vo.LiveHistoryVO">
+        SELECT
+            su.id id,
+            su.full_name fullName,
+            su.username username,
+            glh.gensee_join_time joinTime,
+            glh.gensee_leave_time leaveTime,
+            glh.id historyId
+        FROM
+            sys_user su
+                LEFT JOIN gensee_user_live_history glh ON glh.gensee_nickname = su.username
+                AND glh.gensee_webcast_id = #{genseeLiveId}
+                LEFT JOIN gensee_live live ON live.gensee_live_id = glh.gensee_webcast_id
+                AND live.id = #{liveId}
+        WHERE
+                su.id IN (
+                SELECT DISTINCT
+                    (au.user_id)
+                FROM
+                    cos_assign_user au
+                        LEFT JOIN cos_section_user su ON su.user_id = au.user_id
+                        AND su.course_id = au.course_id
+                WHERE
+                    au.course_id = #{courseId}
+                  AND au.origin_type = 12
+                  AND au.origin_id = #{liveId}
+            )
+    </select>
+
+    <select id="searchVodHistory" resultType="com.wdcloud.lms.core.base.vo.LiveHistoryVO">
+        SELECT DISTINCT
+            su.id id,
+            (
+                SELECT
+                    count(*)
+                FROM
+                    gensee_user_vod_history gvh
+                        INNER JOIN gensee_vod gv ON gvh.gensee_vodId = gv.gensee_id
+                WHERE
+                    gvh.gensee_uid = su.id
+                  AND gv.gensee_webcast_id = gv2.gensee_webcast_id
+            ) reviewTimes
+        FROM
+            sys_user su
+                LEFT JOIN gensee_user_vod_history gvh2 ON gvh2.gensee_uid = su.id
+                AND gvh2.gensee_vodId = #{genseeVodId}
+                LEFT JOIN gensee_vod gv2 ON gvh2.gensee_vodId = gv2.gensee_id
+                AND gv2.gensee_webcast_id = #{genseeLiveId}
+        WHERE
+                su.id IN (
+                SELECT DISTINCT
+                    (au.user_id)
+                FROM
+                    cos_assign_user au
+                        LEFT JOIN cos_section_user su ON su.user_id = au.user_id
+                        AND su.course_id = au.course_id
+                WHERE
+                    au.course_id = #{courseId}
+                  AND au.origin_type = 12
+                  AND au.origin_id = #{liveId}
+            )
+    </select>
+</mapper>

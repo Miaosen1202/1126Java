@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.CertificationExtMapper">
+
+    <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.vo.certification.CertificationVO">
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="name" jdbcType="VARCHAR" property="name" />
+        <result column="op_day" jdbcType="INTEGER" property="opDay" />
+        <result column="type" jdbcType="INTEGER" property="type" />
+        <result column="validity" jdbcType="INTEGER" property="validity" />
+        <result column="issuer" jdbcType="INTEGER" property="issuer" />
+        <result column="cover_img_id" jdbcType="BIGINT" property="coverImgId" />
+        <result column="publish_time" jdbcType="TIMESTAMP" property="publishTime" />
+        <result column="status" jdbcType="INTEGER" property="status" />
+        <result column="is_delete" jdbcType="INTEGER" property="isDelete" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+        <result column="memo" jdbcType="LONGVARCHAR" property="memo" />
+    </resultMap>
+    <select id="findCertificationListByAdmin"
+           resultMap="BaseResultMap">
+        select
+        *
+        from cos_certification
+        where
+          is_delete=0
+          and create_user_id=#{loginUserId}
+        <if test="searchKey!=null and searchKey!=''">
+            and name like concat('%',#{searchKey},'%')
+        </if>
+        <if test="status!=-1">
+            and status=#{status}
+        </if>
+        <if test="issuer!=-1">
+            and issuer=#{issuer}
+        </if>
+        order by
+        <choose>
+            <when test="orderBy==0">name</when>
+            <when test="orderBy==1">name desc</when>
+            <otherwise>update_time desc</otherwise>
+        </choose>
+    </select>
+    <select id="findCertificationListByLearner"
+            resultType="com.wdcloud.lms.core.base.vo.certification.LearnerCertificationVO">
+        select
+          t1.certification_id certificationId,
+          t1.user_id userId,
+          t1.status,
+          t1.enroll_time enrollTime,
+          t2.name,
+          t2.op_day opDay,
+          t2.issuer,
+          t2.type,
+          t2.validity,
+          t2.cover_img_id coverImgId,
+          t3.file_url fileUrl,
+          t2.status certStatus
+        from cos_certification_user t1
+        join cos_certification t2 on t2.id=t1.certification_id
+        left join sys_user_file t3 on t3.id=t2.cover_img_id
+        where
+        t1.user_id=#{loginUserId}
+        order by
+        <choose>
+            <when test="orderBy==0">t2.name</when>
+            <when test="orderBy==1">t2.name desc</when>
+            <otherwise>t2.update_time desc</otherwise>
+        </choose>
+    </select>
+    <select id="findOneCertificationListByLearner"
+            resultType="com.wdcloud.lms.core.base.vo.certification.LearnerCertificationVO">
+        select
+            t1.certification_id certificationId,
+            t1.user_id userId,
+            t1.status,
+            t1.enroll_time enrollTime,
+            t1.proof_file_id proofFileId,
+            t2.name,
+            t2.op_day opDay,
+            t2.issuer,
+            t2.type,
+            t2.validity,
+            t2.cover_img_id coverImgId,
+            t2.memo
+        from cos_certification_user t1
+                 join cos_certification t2 on t2.id=t1.certification_id
+        where
+            t1.certification_id=#{certificationId} and t1.user_id=#{userId}
+            limit 1
+    </select>
+</mapper>

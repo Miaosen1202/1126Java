@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.StudyGroupMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.StudyGroup">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="sis_id" jdbcType="VARCHAR" property="sisId" />
+    <result column="course_id" jdbcType="BIGINT" property="courseId" />
+    <result column="study_group_set_id" jdbcType="BIGINT" property="studyGroupSetId" />
+    <result column="is_student_group" jdbcType="INTEGER" property="isStudentGroup" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="max_member_number" jdbcType="INTEGER" property="maxMemberNumber" />
+    <result column="leader_id" jdbcType="BIGINT" property="leaderId" />
+    <result column="join_type" jdbcType="INTEGER" property="joinType" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+    <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+  </resultMap>
+</mapper>

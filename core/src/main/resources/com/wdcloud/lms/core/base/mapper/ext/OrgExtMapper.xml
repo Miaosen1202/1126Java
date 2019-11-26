@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.OrgExtMapper">
+    <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.vo.OrgVO"
+               extends="com.wdcloud.lms.core.base.mapper.OrgMapper.BaseResultMap">
+        <result column="subCount" jdbcType="BIGINT" property="subCount"/>
+        <result column="coursesCount" jdbcType="BIGINT" property="coursesCount"/>
+    </resultMap>
+
+    <select id="getOrgWithSubCountAndCoursesCount"
+            resultMap="BaseResultMap">
+        select so.*,
+               (select count(*) from sys_org where parent_id=so.id) subCount,
+        (select count(*) from cos_course where org_id=so.id and is_deleted=0) coursesCount
+        from sys_org so
+        <where>
+            <if test="id !=null">
+                and so.id = #{id}
+            </if>
+            <if test="parentId !=null">
+                and so.parent_id = #{parentId}
+            </if>
+        </where>
+    </select>
+
+    <select id="getUserOrg" resultMap="com.wdcloud.lms.core.base.mapper.OrgMapper.BaseResultMap">
+        select
+          *
+        from
+        <where>
+            id = (
+              select u.org_id from sys_user u where u.id = #{userId}
+            )
+        </where>
+    </select>
+    <select id="getUserAdminOrg" resultMap="com.wdcloud.lms.core.base.mapper.OrgMapper.BaseResultMap">
+        select *
+        from sys_org so
+                 join sys_org_user sou
+                      on so.id = sou.org_id
+        where sou.user_id = #{userId}
+
+    </select>
+    <select id="getMaxTreeIdByParentId" resultType="java.lang.String">
+        select max(tree_id) from sys_org where parent_id=#{parentId}
+    </select>
+    <select id="getByUserIdAndRoleId" resultMap="com.wdcloud.lms.core.base.mapper.OrgMapper.BaseResultMap">
+        SELECT *
+        FROM sys_org so
+                 join sys_org_user sou
+                      on so.id = sou.org_id
+        WHERE sou.user_id = #{userId}
+          and sou.role_id = #{roleId}
+    </select>
+</mapper>

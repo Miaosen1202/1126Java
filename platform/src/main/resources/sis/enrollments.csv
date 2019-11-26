@@ -1,0 +1,5 @@
+course_id,user_id,role,section_id,status
+SSC_0001,SSU_0001,student,SS_SEC_001,active
+SSC_0001,SSU_0001,teacher,SS_SEC_001,active
+SSC_0001,SSU_0001,ta,SS_SEC_001,active
+SSC_0001,SSU_0002,student,SS_SEC_002,active

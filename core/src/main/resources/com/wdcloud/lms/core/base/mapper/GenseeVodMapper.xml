@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.GenseeVodMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.GenseeVod">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="gensee_id" jdbcType="VARCHAR" property="genseeId" />
+    <result column="gensee_subject" jdbcType="VARCHAR" property="genseeSubject" />
+    <result column="gensee_password" jdbcType="VARCHAR" property="genseePassword" />
+    <result column="gensee_description" jdbcType="VARCHAR" property="genseeDescription" />
+    <result column="gensee_created_time" jdbcType="TIMESTAMP" property="genseeCreatedTime" />
+    <result column="gensee_attendee_join_url" jdbcType="VARCHAR" property="genseeAttendeeJoinUrl" />
+    <result column="gensee_webcast_id" jdbcType="VARCHAR" property="genseeWebcastId" />
+    <result column="gensee_screenshot" jdbcType="VARCHAR" property="genseeScreenshot" />
+    <result column="gensee_creator" jdbcType="VARCHAR" property="genseeCreator" />
+    <result column="gensee_number" jdbcType="VARCHAR" property="genseeNumber" />
+    <result column="gensee_record_id" jdbcType="VARCHAR" property="genseeRecordId" />
+    <result column="gensee_record_start_time" jdbcType="TIMESTAMP" property="genseeRecordStartTime" />
+    <result column="gensee_record_end_time" jdbcType="TIMESTAMP" property="genseeRecordEndTime" />
+    <result column="gensee_gr_type" jdbcType="INTEGER" property="genseeGrType" />
+    <result column="gensee_duration" jdbcType="BIGINT" property="genseeDuration" />
+    <result column="gensee_convert_result" jdbcType="INTEGER" property="genseeConvertResult" />
+    <result column="gensee_speaker_info" jdbcType="VARCHAR" property="genseeSpeakerInfo" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+    <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+  </resultMap>
+</mapper>

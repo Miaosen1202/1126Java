@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.MessageExtMapper">
+
+    <resultMap id="findMsgSentListMap" type="com.wdcloud.lms.core.base.vo.msg.MessageSentVO">
+        <result column="send_id" jdbcType="INTEGER" property="sendId"/>
+        <result column="subject_id" jdbcType="INTEGER" property="subjectId"/>
+        <result column="message_subject" jdbcType="VARCHAR" property="messageSubject"/>
+        <result column="course_id" jdbcType="INTEGER" property="courseId"/>
+        <result column="courseName" jdbcType="VARCHAR" property="courseName"/>
+        <result column="msgTotal" jdbcType="INTEGER" property="msgTotal"/>
+    </resultMap>
+
+    <select id="findMsgSentList" resultMap="findMsgSentListMap">
+        select
+        t1.send_id,
+        t1.subject_id,
+        t2.message_subject,
+        t2.course_id,
+        t2.create_time,
+        t3.name courseName,
+        count(t2.id) msgTotal
+        from
+        cos_message_send t1
+        join cos_message t2 on t2.id=t1.subject_id
+        join cos_course t3 on t3.id=t2.course_id
+        where
+        t1.send_id=#{loginUserId}
+        and t1.is_delete=0
+        and t2.course_id in <foreach collection="courseIds" item="courseId" separator="," open="(" close=")">#{courseId}</foreach>
+        <if test="searchKey!=null and searchKey!=''">
+            and t2.message_subject like concat('%',#{searchKey},'%')
+        </if>
+        group by t1.send_id,t1.subject_id,t2.message_subject,t2.course_id,t3.name,t2.create_time
+        order by t2.update_time desc
+    </select>
+    <resultMap id="myLastestSentMsgMap" type="com.wdcloud.lms.core.base.vo.msg.MsgItemVO">
+        <result column="message_id" jdbcType="BIGINT" property="messageId"/>
+        <result column="subject_id" jdbcType="BIGINT" property="subjectId"/>
+        <result column="course_id" jdbcType="BIGINT" property="courseId"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId"/>
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId"/>
+        <result column="message_subject" jdbcType="LONGVARCHAR" property="messageSubject"/>
+        <result column="message_text" jdbcType="LONGVARCHAR" property="messageText"/>
+        <result column="is_private" jdbcType="INTEGER" property="isPrivate"/>
+        <result column="send_id" jdbcType="BIGINT" property="sendId"/>
+        <result column="username" jdbcType="VARCHAR" property="sendUsername"/>
+        <result column="avatar_file_id" jdbcType="VARCHAR" property="sendAvatarFileId"/>
+        <collection property="recList" columnPrefix="recList_" ofType="com.wdcloud.lms.core.base.vo.UserVo">
+            <result column="rec_id" jdbcType="BIGINT" property="id"/>
+            <result column="username" jdbcType="VARCHAR" property="username"/>
+        </collection>
+    </resultMap>
+    <select id="myLastestSentMsg" resultMap="myLastestSentMsgMap">
+        select tt.*,
+               t4.rec_id   recList_rec_id,
+               t5.username recList_username
+        from
+            (
+                select
+                    t2.id,
+                    t2.is_subject,
+                    t2.subject_id,
+                    t2.course_id,
+                    t2.message_subject,
+                    t2.message_text,
+                    t2.is_private,
+                    t2.create_time,
+                    t2.update_time,
+                    t2.create_user_id,
+                    t2.update_user_id,
+                    t1.send_id,
+                    t1.message_id,
+                    t3.avatar_file_id,
+                    t3.username
+                from
+                    cos_message_send t1
+                        join cos_message t2 on t2.id = t1.message_id
+                        join sys_user t3 on t3.id = t1.send_id
+                where t1.is_delete = 0
+                  and t1.send_id = #{sendId}
+                  and t1.subject_id = #{subjectId}
+                order by t1.create_time desc
+                         limit 1
+            ) tt
+                left join cos_message_rec t4 on t4.message_id = tt.id and t4.is_default=0
+                left join sys_user t5 on t5.id = t4.rec_id
+    </select>
+    <resultMap id="findSubjectInfoByIdMap" type="com.wdcloud.lms.core.base.vo.msg.SubjectInfoVO">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="course_id" jdbcType="BIGINT" property="courseId"/>
+        <result column="message_subject" jdbcType="LONGVARCHAR" property="messageSubject"/>
+        <result column="courseName" jdbcType="VARCHAR" property="courseName"/>
+    </resultMap>
+    <select id="findSubjectInfoById" resultType="com.wdcloud.lms.core.base.vo.msg.SubjectInfoVO">
+        select
+            t1.id,
+            t1.message_subject messageSubject,
+            t1.course_id       courseId,
+            t2.name            courseName,
+            case
+             when t3.id is null then 0
+             else 1
+            end isStar
+        from
+            cos_message t1
+                left join cos_course t2 on t2.id = t1.course_id
+            left join cos_message_subject_user_star t3 on t3.subject_id=t1.subject_id and t3.user_id=#{loginUserId}
+        where t1.id = #{subjectId}
+    </select>
+    <select id="findSentMsgListBySubject" resultMap="myLastestSentMsgMap">
+        select tt.*,
+               t4.rec_id   recList_rec_id,
+               t5.username recList_username
+        from
+            (
+                select
+                    t2.id,
+                    t2.is_subject,
+                    t2.subject_id,
+                    t2.course_id,
+                    t2.message_subject,
+                    t2.message_text,
+                    t2.is_private,
+                    t2.create_time,
+                    t2.update_time,
+                    t2.create_user_id,
+                    t2.update_user_id,
+                    t1.send_id,
+                    t1.message_id,
+                    t3.avatar_file_id,
+                    t3.username
+                from
+                    cos_message_send t1
+                        join cos_message t2 on t2.id = t1.message_id
+                        join sys_user t3 on t3.id = t1.send_id
+                where t1.is_delete = 0
+                  and t1.send_id = #{loginUserId}
+                  and t1.subject_id = #{subjectId}
+            ) tt
+                left join cos_message_rec t4 on t4.message_id = tt.id and t4.is_default=0
+                left join sys_user t5 on t5.id = t4.rec_id
+        order by tt.create_time desc
+    </select>
+
+    <select id="findMsgItemByMsgIds" resultMap="myLastestSentMsgMap">
+        select tt.*,
+        t4.rec_id recList_rec_id,
+        t5.username recList_username
+        from
+        (
+        select
+        t2.id, t2.is_subject, t2.subject_id, t2.course_id, t2.message_subject, t2.message_text,
+        t2.create_time, t2.update_time, t2.create_user_id, t2.update_user_id,t2.is_private,
+        t1.send_id,t1.message_id,
+        t3.avatar_file_id,
+        t3.username
+        from
+        cos_message_send t1
+        join cos_message t2 on t2.id=t1.message_id
+        join sys_user t3 on t3.id=t1.send_id
+        where t1.is_delete=0
+        and t1.id in
+        <foreach collection="messageIds" open="(" close=")" separator="," item="messageId">#{messageId}</foreach>
+        ) tt
+        left join cos_message_rec t4 on t4.message_id=tt.id and t4.is_default=0
+        left join sys_user t5 on t5.id=t4.rec_id
+        order by tt.create_time desc
+    </select>
+</mapper>

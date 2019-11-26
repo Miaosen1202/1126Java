@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.AssignmentGroupItemChangeRecordExtMapper">
+
+    <select id="findNotifies" resultMap="com.wdcloud.lms.core.base.mapper.AssignmentGroupItemChangeRecordMapper.BaseResultMap">
+         select
+          r.*
+        from
+          cos_assignment_group_item_change_record r
+          left join cos_assignment a on r.origin_id = a.id and r.origin_type = ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@ASSIGNMENT.getType()}
+          left join cos_discussion d on r.origin_id = d.id and r.origin_type = ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@DISCUSSION.getType()}
+          left join cos_quiz q on r.origin_id = q.id and r.origin_type = ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@QUIZ.getType()}
+        where
+            r.course_id = #{courseId}
+            and
+            (
+                (
+                    r.origin_type = ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@ASSIGNMENT.getType()}
+                    and a.id is not null
+                )
+                or (
+                  r.origin_type = ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@DISCUSSION.getType()}
+                  and d.is_deleted = ${@com.wdcloud.lms.core.base.enums.Status@NO.getStatus()}
+                )
+                or (
+                  r.origin_type = ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@QUIZ.getType()}
+                  and q.id is not null
+                )
+            )
+        order by create_time desc
+    </select>
+</mapper>

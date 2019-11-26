@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.ResourceAdminOperationLogExtMapper">
+    <select id="getByResourceAuthorId" resultType="com.wdcloud.lms.core.base.vo.resource.ResourceAdminOperationLogVO">
+        select
+        log.id,
+        log.resource_name resourceName,
+        log.origin_type category,
+        log.share_range shareRange,
+        log.operation_type operationType,
+        log.create_time createTime,
+        log.admin_user_name adminName
+        from res_resource_admin_operation_log log
+        where log.author_id = #{authorId}
+        order by log.create_time desc, log.id desc
+    </select>
+
+    <select id="countByIsSeeAndResourceAuthorId" resultType="java.lang.Integer">
+        select count(log.id)
+        from res_resource_admin_operation_log log
+        where log.is_see = #{isSee} and log.author_id = #{authorId}
+    </select>
+</mapper>

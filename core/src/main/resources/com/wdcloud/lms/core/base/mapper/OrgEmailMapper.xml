@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.OrgEmailMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.OrgEmail">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="root_org_code" jdbcType="VARCHAR" property="rootOrgCode" />
+    <result column="email_display_name" jdbcType="VARCHAR" property="emailDisplayName" />
+    <result column="email_host" jdbcType="VARCHAR" property="emailHost" />
+    <result column="emai_port" jdbcType="INTEGER" property="emaiPort" />
+    <result column="emai_security_type" jdbcType="INTEGER" property="emaiSecurityType" />
+    <result column="emai_auth_type" jdbcType="INTEGER" property="emaiAuthType" />
+    <result column="email_user_name" jdbcType="VARCHAR" property="emailUserName" />
+    <result column="email_pwd" jdbcType="VARCHAR" property="emailPwd" />
+    <result column="is_open" jdbcType="INTEGER" property="isOpen" />
+    <result column="is_open_regist" jdbcType="INTEGER" property="isOpenRegist" />
+    <result column="is_open_retrieve_pwd" jdbcType="INTEGER" property="isOpenRetrievePwd" />
+    <result column="is_open_push_notify" jdbcType="INTEGER" property="isOpenPushNotify" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+    <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+  </resultMap>
+</mapper>

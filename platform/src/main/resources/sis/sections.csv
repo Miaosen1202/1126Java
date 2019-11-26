@@ -1,0 +1,4 @@
+section_id,name,course_id,start_date,end_date,status
+SS_SEC_001,SECTION_1,SSC_0001,,,active
+SS_SEC_002,SECTION_2,SSC_0001,,,active
+SS_SEC_003,SECTION_3,SSC_00010,,,active

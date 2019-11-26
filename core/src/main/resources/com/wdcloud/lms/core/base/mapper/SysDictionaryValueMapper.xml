@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.SysDictionaryValueMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.SysDictionaryValue">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="dictionary_id" jdbcType="BIGINT" property="dictionaryId" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="locale" jdbcType="VARCHAR" property="locale" />
+  </resultMap>
+</mapper>

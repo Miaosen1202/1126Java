@@ -1,0 +1,43 @@
+spring:
+    datasource:
+        name: test
+        url: jdbc:mysql://172.21.9.11:3306/lms?characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&allowMultiQueries=true
+        username: lms
+        password: WD@lms_2019
+        # 使用druid数据源
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        filters: stat
+        maxActive: 20
+        initialSize: 1
+        maxWait: 60000
+        minIdle: 1
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: select 'x'
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        #        maxOpenPreparedStatements: 20
+        maxPoolPreparedStatementPerConnectionSize: 20
+        removeAbandoned: true
+        removeAbandonedTimeout: 300
+        logAbandoned: true
+    rabbitmq:
+        addresses: 172.21.9.11
+        password: admin
+        port: 5672
+        username: admin
+    redis:
+        host: 172.21.9.11
+        password: WD@lms_2019
+        port: 6379
+
+file:
+    oss:
+        appId: 12b517e983a945089243a177f2097a1d
+        secretKey: be5b60e5483d43da8dd550ab3dbccc74
+        url: 172.21.9.11:8010
+file-server-url: http://161.117.86.212
+liveType: gensee

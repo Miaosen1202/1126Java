@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.SisImportStudyGroupSetExtMapper">
+
+    <insert id="batchSaveOrUpdate" useGeneratedKeys="true" keyColumn="id">
+        insert into sys_sis_import_study_group_set (
+            `id`,
+            `batch_code`,
+            `target_id`,
+            `org_tree_id`,
+            `group_category_id`,
+            `category_name`,
+            `course_id`,
+            `operation`,
+            `op_user_id`,
+            `op_user_org_tree_id`
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.id},
+                #{item.batchCode},
+                #{item.targetId},
+                #{item.orgTreeId},
+                #{item.groupCategoryId},
+                #{item.categoryName},
+                #{item.courseId},
+                #{item.operation},
+                #{item.opUserId},
+                #{item.opUserOrgTreeId}
+            )
+        </foreach>
+        on duplicate key update
+            `batch_code` = values(`batch_code`),
+            `target_id` = values(`target_id`),
+            `org_tree_id` = values(`org_tree_id`),
+            `group_category_id` = values(`group_category_id`),
+            `category_name` = values(`category_name`),
+            `course_id` = values(`course_id`),
+            `operation` = values(`operation`),
+            `op_user_id` = values(`op_user_id`),
+            `op_user_org_tree_id` = values(`op_user_org_tree_id`)
+    </insert>
+</mapper>

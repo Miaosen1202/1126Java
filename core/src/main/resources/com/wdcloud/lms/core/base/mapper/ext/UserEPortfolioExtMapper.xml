@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.UserEPortfolioExtMapper">
+
+    <resultMap id="UserEPortfolioVOMap" type="com.wdcloud.lms.core.base.vo.ePortfolio.UserEPortfolioVO">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"></result>
+        <collection property="columns" ofType="com.wdcloud.lms.core.base.vo.ePortfolio.UserEPortfolioColumnListVO"
+                    select="com.wdcloud.lms.core.base.mapper.ext.UserEPortfolioColumnExtMapper.getByEPortfolioId" column="id"></collection>
+    </resultMap>
+
+    <select id="getByUserId" resultType="com.wdcloud.lms.core.base.vo.ePortfolio.UserEPortfolioListVO">
+        select
+                 portfolio.id,
+                 portfolio.name,
+                 portfolio.update_time updateTime,
+                 count(ecolumn.id) columnCount
+        from sys_user_e_portfolio portfolio
+             left join sys_user_e_portfolio_column ecolumn on ecolumn.e_portfolio_id = portfolio.id
+        where portfolio.user_id = #{userId}
+        group by portfolio.id
+        order by portfolio.create_time desc
+    </select>
+
+    <select id="getById" resultMap="UserEPortfolioVOMap">
+        select
+            id,
+            name
+        from sys_user_e_portfolio
+        where id = #{id}
+    </select>
+</mapper>

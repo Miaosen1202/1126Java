@@ -1,0 +1,673 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.QuizExtMapper">
+    <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.vo.QuizVO"
+               extends="com.wdcloud.lms.core.base.mapper.QuizMapper.BaseResultMap">
+        <result column="itemsCount" jdbcType="INTEGER" property="itemsCount"/>
+    </resultMap>
+    <!-- 教师端查询用开始 -->
+    <select id="getQuizWithinItemsCount" resultMap="BaseResultMap">
+        select cq.*, (select count(1) from cos_quiz_item cqi where cqi.quiz_id = cq.id) as itemsCount
+        from cos_quiz cq
+        where cq.id in
+        <foreach item="item" index="index" collection="ids"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getByCourseIdAndCreateUserId" resultMap="BaseResultMap">
+        select cq.id,
+               cq.course_id,
+               cq.title,
+               cq.description,
+               cq.type,
+               cq.assignment_group_id,
+               cq.score,
+               cq.allow_anonymous,
+               cq.is_shuffle_answer,
+               cq.time_limit,
+               cq.allow_multi_attempt,
+               cq.attempt_number,
+               cq.score_type,
+               cq.show_reply_strategy,
+               cq.show_answer_strategy,
+               cq.show_answer_start_time,
+               cq.show_answer_end_time,
+               cq.show_question_strategy,
+               cq.is_lock_replied_question,
+               cq.is_need_access_code,
+               cq.access_code,
+               cq.is_filter_ip,
+               cq.filter_ip_address,
+               cq.version,
+               cq.status,
+               cq.total_questions,
+               cq.total_score,
+               cq.create_time,
+               cq.update_time,
+               cq.create_user_id,
+               cq.update_user_id
+        from cos_quiz cq
+        where cq.course_id = #{courseId} and cq.create_user_id = #{createUserId}  order by cq.create_time asc
+    </select>
+    <resultMap id="SearchResultMap" type="com.wdcloud.lms.core.base.vo.QuizVO"
+               extends="com.wdcloud.lms.core.base.mapper.QuizMapper.BaseResultMap">
+        <result column="course_id" jdbcType="BIGINT" property="courseId"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="type" jdbcType="INTEGER" property="type"/>
+        <result column="assignment_group_id" jdbcType="BIGINT" property="assignmentGroupId"/>
+        <result column="score" jdbcType="INTEGER" property="score"/>
+        <result column="allow_anonymous" jdbcType="INTEGER" property="allowAnonymous"/>
+        <result column="is_shuffle_answer" jdbcType="INTEGER" property="isShuffleAnswer"/>
+        <result column="time_limit" jdbcType="INTEGER" property="timeLimit"/>
+        <result column="allow_multi_attempt" jdbcType="INTEGER" property="allowMultiAttempt"/>
+        <result column="attempt_number" jdbcType="INTEGER" property="attemptNumber"/>
+        <result column="score_type" jdbcType="INTEGER" property="scoreType"/>
+        <result column="show_reply_strategy" jdbcType="INTEGER" property="showReplyStrategy"/>
+        <result column="show_answer_strategy" jdbcType="INTEGER" property="showAnswerStrategy"/>
+        <result column="show_answer_start_time" jdbcType="TIMESTAMP" property="showAnswerStartTime"/>
+        <result column="show_answer_end_time" jdbcType="TIMESTAMP" property="showAnswerEndTime"/>
+        <result column="show_question_strategy" jdbcType="INTEGER" property="showQuestionStrategy"/>
+        <result column="is_lock_replied_question" jdbcType="INTEGER" property="isLockRepliedQuestion"/>
+        <result column="is_need_access_code" jdbcType="INTEGER" property="isNeedAccessCode"/>
+        <result column="access_code" jdbcType="VARCHAR" property="accessCode"/>
+        <result column="is_filter_ip" jdbcType="INTEGER" property="isFilterIp"/>
+        <result column="filter_ip_address" jdbcType="VARCHAR" property="filterIpAddress"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="total_questions" jdbcType="INTEGER" property="totalQuestions"/>
+        <result column="total_score" jdbcType="INTEGER" property="totalScore"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId"/>
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId"/>
+        <result column="description" jdbcType="LONGVARCHAR" property="description"/>
+        <result column="total_questions" jdbcType="BIGINT" property="totalQuestions"/>
+        <result column="total_score" jdbcType="BIGINT" property="totalScore"/>
+        <association property="assigns" columnPrefix="assign_"
+                     resultMap="com.wdcloud.lms.core.base.mapper.AssignMapper.BaseResultMap">
+        </association>
+    </resultMap>
+    <select id="search" resultMap="SearchResultMap">
+        select
+        cq.id,
+        cq.course_id,
+        cq.title,
+        cq.description,
+        cq.type,
+        cq.assignment_group_id,
+        cq.score,
+        cq.allow_anonymous,
+        cq.is_shuffle_answer,
+        cq.time_limit,
+        cq.allow_multi_attempt,
+        cq.attempt_number,
+        cq.score_type,
+        cq.show_reply_strategy,
+        cq.show_answer_strategy,
+        cq.show_answer_start_time,
+        cq.show_answer_end_time,
+        cq.show_question_strategy,
+        cq.is_lock_replied_question,
+        cq.is_need_access_code,
+        cq.access_code,
+        cq.is_filter_ip,
+        cq.filter_ip_address,
+        cq.version,
+        cq.status,
+        cq.total_questions,
+        cq.total_score,
+        cq.create_time,
+        cq.update_time,
+        cq.create_user_id,
+        cq.update_user_id,
+        asig.id as assign_id,
+        asig.course_id as assign_course_id,
+        asig.origin_type as assign_origin_type,
+        asig.origin_id as assign_origin_id,
+        asig.assign_type as assign_assign_type,
+        asig.assign_id as assign_assign_id,
+        asig.limit_time as assign_limit_time,
+        asig.start_time as assign_start_time,
+        asig.end_time as assign_end_time
+        from cos_quiz cq left join cos_assign as asig on cq.id=asig.origin_id and asig.origin_type=3
+        <where>
+            <if test="createUserId != null">
+                and cq.create_user_id =#{createUserId}
+            </if>
+            <if test="courseId != null">
+                and cq.course_id =#{courseId}
+            </if>
+            <if test="originType != null">
+                and cq.type =#{type}
+            </if>
+            <if test="title != null">
+                and cq.title like concat("%",#{title},"%")
+            </if>
+            <if test="description != null">
+                or cq.description like concat("%",#{description},"%")
+            </if>
+        </where>
+        order by cq.create_time desc
+    </select>
+
+    <!-- 教师依据测验id查询测验信息 -->
+    <resultMap id="getByIdResultMap" type="com.wdcloud.lms.core.base.vo.QuizVO"
+               extends="com.wdcloud.lms.core.base.mapper.QuizMapper.BaseResultMap">
+        <result column="course_id" jdbcType="BIGINT" property="courseId"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="type" jdbcType="INTEGER" property="type"/>
+        <result column="assignment_group_id" jdbcType="BIGINT" property="assignmentGroupId"/>
+        <result column="score" jdbcType="INTEGER" property="score"/>
+        <result column="allow_anonymous" jdbcType="INTEGER" property="allowAnonymous"/>
+        <result column="is_shuffle_answer" jdbcType="INTEGER" property="isShuffleAnswer"/>
+        <result column="time_limit" jdbcType="INTEGER" property="timeLimit"/>
+        <result column="allow_multi_attempt" jdbcType="INTEGER" property="allowMultiAttempt"/>
+        <result column="attempt_number" jdbcType="INTEGER" property="attemptNumber"/>
+        <result column="score_type" jdbcType="INTEGER" property="scoreType"/>
+        <result column="show_reply_strategy" jdbcType="INTEGER" property="showReplyStrategy"/>
+        <result column="show_answer_strategy" jdbcType="INTEGER" property="showAnswerStrategy"/>
+        <result column="show_answer_start_time" jdbcType="TIMESTAMP" property="showAnswerStartTime"/>
+        <result column="show_answer_end_time" jdbcType="TIMESTAMP" property="showAnswerEndTime"/>
+        <result column="show_question_strategy" jdbcType="INTEGER" property="showQuestionStrategy"/>
+        <result column="is_lock_replied_question" jdbcType="INTEGER" property="isLockRepliedQuestion"/>
+        <result column="is_need_access_code" jdbcType="INTEGER" property="isNeedAccessCode"/>
+        <result column="access_code" jdbcType="VARCHAR" property="accessCode"/>
+        <result column="is_filter_ip" jdbcType="INTEGER" property="isFilterIp"/>
+        <result column="filter_ip_address" jdbcType="VARCHAR" property="filterIpAddress"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="total_questions" jdbcType="INTEGER" property="totalQuestions"/>
+        <result column="total_score" jdbcType="INTEGER" property="totalScore"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId"/>
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId"/>
+        <result column="description" jdbcType="LONGVARCHAR" property="description"/>
+        <result column="total_questions" jdbcType="BIGINT" property="totalQuestions"/>
+        <result column="total_score" jdbcType="BIGINT" property="totalScore"/>
+        <association property="assigns" columnPrefix="assign_"
+                     resultMap="com.wdcloud.lms.core.base.mapper.AssignMapper.BaseResultMap">
+        </association>
+    </resultMap>
+    <select id="getById" resultMap="getByIdResultMap">
+        select
+        cq.id,
+        cq.course_id,
+        cq.title,
+        cq.description,
+        cq.type,
+        cq.assignment_group_id,
+        cq.score,
+        cq.allow_anonymous,
+        cq.is_shuffle_answer,
+        cq.time_limit,
+        cq.allow_multi_attempt,
+        cq.attempt_number,
+        cq.score_type,
+        cq.show_reply_strategy,
+        cq.show_answer_strategy,
+        cq.show_answer_start_time,
+        cq.show_answer_end_time,
+        cq.show_question_strategy,
+        cq.is_lock_replied_question,
+        cq.is_need_access_code,
+        cq.access_code,
+        cq.is_filter_ip,
+        cq.filter_ip_address,
+        cq.version,
+        cq.status,
+        cq.total_questions,
+        cq.total_score,
+        cq.create_time,
+        cq.update_time,
+        cq.create_user_id,
+        cq.update_user_id,
+        asig.id as assign_id,
+        asig.course_id as assign_course_id,
+        asig.origin_type as assign_origin_type,
+        asig.origin_id as assign_origin_id,
+        asig.assign_type as assign_assign_type,
+        asig.assign_id as assign_assign_id,
+        asig.limit_time as assign_limit_time,
+        asig.start_time as assign_start_time,
+        asig.end_time as assign_end_time
+        from cos_quiz cq left join cos_assign as asig on cq.id=asig.origin_id and asig.origin_type=3
+        <where>
+            cq.id =#{id}
+        </where>
+
+    </select>
+    <!-- 教师端查询用结束 -->
+
+    <!-- 学生端查询（只要状态是发布的并且有查询权限的就能查询）用开始-->
+    <resultMap id="assignUsers" type="com.wdcloud.lms.core.base.model.AssignUser">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="course_id" jdbcType="BIGINT" property="courseId"/>
+        <result column="origin_type" jdbcType="INTEGER" property="originType"/>
+        <result column="origin_id" jdbcType="BIGINT" property="originId"/>
+        <result column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="limit_time" jdbcType="TIMESTAMP" property="limitTime"/>
+        <result column="start_time" jdbcType="TIMESTAMP" property="startTime"/>
+        <result column="end_time" jdbcType="TIMESTAMP" property="endTime"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId"/>
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId"/>
+    </resultMap>
+    <resultMap id="studentSearchResultMap" type="com.wdcloud.lms.core.base.vo.QuizVO"
+               extends="com.wdcloud.lms.core.base.mapper.QuizMapper.BaseResultMap">
+        <result column="course_id" jdbcType="BIGINT" property="courseId"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="type" jdbcType="INTEGER" property="type"/>
+        <result column="assignment_group_id" jdbcType="BIGINT" property="assignmentGroupId"/>
+        <result column="score" jdbcType="INTEGER" property="score"/>
+        <result column="allow_anonymous" jdbcType="INTEGER" property="allowAnonymous"/>
+        <result column="is_shuffle_answer" jdbcType="INTEGER" property="isShuffleAnswer"/>
+        <result column="time_limit" jdbcType="INTEGER" property="timeLimit"/>
+        <result column="allow_multi_attempt" jdbcType="INTEGER" property="allowMultiAttempt"/>
+        <result column="attempt_number" jdbcType="INTEGER" property="attemptNumber"/>
+        <result column="score_type" jdbcType="INTEGER" property="scoreType"/>
+        <result column="show_reply_strategy" jdbcType="INTEGER" property="showReplyStrategy"/>
+        <result column="show_answer_strategy" jdbcType="INTEGER" property="showAnswerStrategy"/>
+        <result column="show_answer_start_time" jdbcType="TIMESTAMP" property="showAnswerStartTime"/>
+        <result column="show_answer_end_time" jdbcType="TIMESTAMP" property="showAnswerEndTime"/>
+        <result column="show_question_strategy" jdbcType="INTEGER" property="showQuestionStrategy"/>
+        <result column="is_lock_replied_question" jdbcType="INTEGER" property="isLockRepliedQuestion"/>
+        <result column="is_need_access_code" jdbcType="INTEGER" property="isNeedAccessCode"/>
+        <result column="access_code" jdbcType="VARCHAR" property="accessCode"/>
+        <result column="is_filter_ip" jdbcType="INTEGER" property="isFilterIp"/>
+        <result column="filter_ip_address" jdbcType="VARCHAR" property="filterIpAddress"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="total_questions" jdbcType="INTEGER" property="totalQuestions"/>
+        <result column="total_score" jdbcType="INTEGER" property="totalScore"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId"/>
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId"/>
+        <result column="description" jdbcType="LONGVARCHAR" property="description"/>
+        <result column="total_questions" jdbcType="BIGINT" property="totalQuestions"/>
+        <result column="total_score" jdbcType="BIGINT" property="totalScore"/>
+        <association property="assignUsers" columnPrefix="assignuser_" resultMap="assignUsers">
+
+        </association>
+    </resultMap>
+    <select id="studentSearch" resultMap="studentSearchResultMap">
+        select
+        cq.id,
+        cq.course_id,
+        cq.title,
+        cq.description,
+        cq.type,
+        cq.assignment_group_id,
+        cq.score,
+        cq.allow_anonymous,
+        cq.is_shuffle_answer,
+        cq.time_limit,
+        cq.allow_multi_attempt,
+        cq.attempt_number,
+        cq.score_type,
+        cq.show_reply_strategy,
+        cq.show_answer_strategy,
+        cq.show_answer_start_time,
+        cq.show_answer_end_time,
+        cq.show_question_strategy,
+        cq.is_lock_replied_question,
+        cq.is_need_access_code,
+        cq.access_code,
+        cq.is_filter_ip,
+        cq.filter_ip_address,
+        cq.version,
+        cq.status,
+        cq.total_questions,
+        cq.total_score,
+        cq.create_time,
+        cq.update_time,
+        cq.create_user_id,
+        cq.update_user_id,
+        asig.id assignuser_id,
+        asig.course_id as assignuser_course_id,
+        asig.origin_type as assignuser_origin_type,
+        asig.origin_id as assignuser_origin_id,
+        asig.user_id as assignuser_user_id,
+        asig.limit_time as assignuser_limit_time,
+        asig.start_time as assignuser_start_time,
+        asig.end_time as assignuser_end_time,
+        asig.create_time as assignuser_create_time,
+        asig.update_time as assignuser_update_time,
+        asig.create_user_id as assignuser_create_user_id,
+        asig.update_user_id as assignuser_update_user_id
+
+
+        from cos_quiz cq left join cos_assign_user as asig on
+        cq.id=asig.origin_id
+        and asig.origin_type=3
+        and asig.user_id=#{userId}
+        <where>
+            cq.status=1
+            <if test="courseId != null">
+                and cq.course_id =#{courseId}
+            </if>
+            <if test="originType != null">
+                and asig.origin_type =#{originType}
+            </if>
+            <if test="title != null">
+                and cq.title like concat("%",#{title},"%")
+            </if>
+            <if test="description != null">
+                or cq.description like concat("%",#{description},"%")
+            </if>
+        </where>
+        order by cq.create_time desc
+    </select>
+    <!-- 学生端查询用结束 -->
+
+
+    <!-- 学生端查询（只要状态是发布的并且有查询权限的就能查询）用开始-->
+
+    <select id="getStudentById" resultMap="studentSearchResultMap">
+        select
+        cq.id,
+        cq.course_id,
+        cq.title,
+        cq.description,
+        cq.type,
+        cq.assignment_group_id,
+        cq.score,
+        cq.allow_anonymous,
+        cq.is_shuffle_answer,
+        cq.time_limit,
+        cq.allow_multi_attempt,
+        cq.attempt_number,
+        cq.score_type,
+        cq.show_reply_strategy,
+        cq.show_answer_strategy,
+        cq.show_answer_start_time,
+        cq.show_answer_end_time,
+        cq.show_question_strategy,
+        cq.is_lock_replied_question,
+        cq.is_need_access_code,
+        cq.access_code,
+        cq.is_filter_ip,
+        cq.filter_ip_address,
+        cq.version,
+        cq.status,
+        cq.total_questions,
+        cq.total_score,
+        cq.create_time,
+        cq.update_time,
+        cq.create_user_id,
+        cq.update_user_id,
+        asig.id assignuser_id,
+        asig.course_id as assignuser_course_id,
+        asig.origin_type as assignuser_origin_type,
+        asig.origin_id as assignuser_origin_id,
+        asig.user_id as assignuser_user_id,
+        asig.limit_time as assignuser_limit_time,
+        asig.start_time as assignuser_start_time,
+        asig.end_time as assignuser_end_time,
+        asig.create_time as assignuser_create_time,
+        asig.update_time as assignuser_update_time,
+        asig.create_user_id as assignuser_create_user_id,
+        asig.update_user_id as assignuser_update_user_id
+
+
+        from cos_quiz cq
+        left join cos_assign_user
+        as asig on cq.id=asig.origin_id
+        and asig.origin_type=3
+        and asig.user_id=#{userId}
+        <where>
+            cq.id =#{id}
+        </where>
+
+    </select>
+    <!-- 学生端查询用结束 -->
+    <!-- 更新问题总数和总分 -->
+    <update id="questionsAndScoresUpdate" parameterType="com.wdcloud.lms.core.base.model.Quiz">
+        update cos_quiz set
+        <if test="totalQuestions!= null">
+            total_questions=#{totalQuestions},
+        </if>
+        <if test="totalScore!= null">
+            total_score=#{totalScore},
+        </if>
+        <if test="updateUserId!= null">
+            update_user_id=#{updateUserId}
+        </if>
+
+        where id = #{id}
+
+    </update>
+
+    <update id="publisStatusUpdate" parameterType="com.wdcloud.lms.core.base.model.Quiz">
+
+
+        update cos_quiz set
+        <if test="status!= null">
+            status=#{status}
+        </if>
+        where id = #{id}
+
+    </update>
+
+    <resultMap id="findCalendarQuizListMap" type="com.wdcloud.lms.core.base.vo.CalendarQuizVo"
+               extends="com.wdcloud.lms.core.base.mapper.QuizMapper.BaseResultMap">
+        <result column="assignTableId" property="assignTableId"/>
+        <result column="userName" property="userName"/>
+        <result column="sectionName" property="sectionName"/>
+        <result column="assignType" property="assignType"/>
+        <result column="dueTime" property="dueTime"/>
+    </resultMap>
+    <select id="findCalendarQuizList" resultMap="findCalendarQuizListMap">
+        select ca1.*,
+        ca2.id assignTableId,
+        ca2.limit_time as dueTime,
+        ca2.assign_type as assignType,
+        cs.name as sectionName,
+        su.nickname as userName
+        from cos_quiz ca1
+        join cos_assign ca2 on ca2.origin_id=ca1.id and ca2.origin_type =
+        ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@QUIZ.getType()}
+        left join cos_section cs on cs.id = ca2.assign_id
+        left join sys_user su on su.id = ca2.assign_id
+        where
+        ca1.course_id in
+        <foreach collection="courseIds" item="item" open="(" close=")" separator=",">#{item}</foreach>
+        and ca1.type in(2,3)
+        <choose>
+            <when test="hasDueTime != null">
+                <if test="startDate !=null">
+                    and ca2.limit_time &gt;= from_unixtime(#{startDate})
+                </if>
+                <if test="endDate !=null">
+                    and ca2.limit_time &lt;= from_unixtime(#{endDate})
+                </if>
+            </when>
+            <otherwise>
+                and ca2.limit_time is null
+            </otherwise>
+        </choose>
+    </select>
+    <select id="findCalendarQuizListStudent" resultMap="findCalendarQuizListMap">
+        select ca1.*,
+        ca2.id assignTableId,
+        ca2.limit_time as dueTime,
+        ca2.assign_type as assignType,
+        cs.name as sectionName
+        from cos_quiz ca1
+        join cos_assign_user cau on cau.user_id=#{userId} and cau.origin_id=ca1.id and cau.origin_type=
+        ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@QUIZ.getType()}
+        join cos_assign ca2 on ca1.id = ca2.origin_id and ca2.origin_type =
+        ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@QUIZ.getType()}
+        left join cos_section cs on cs.id = ca2.assign_id
+        where
+        ca1.status=1 and ca1.type in(2,3)
+        and ca1.course_id in
+        <foreach collection="courseIds" item="courseId" separator="," open="(" close=")">
+            #{courseId}
+        </foreach>
+        <!--and ca2.id in-->
+        <!--<foreach collection="assignIds" item="assignId" separator="," open="(" close=")">-->
+        <!--#{assignId}-->
+        <!--</foreach>-->
+        <choose>
+            <when test="hasDueTime != null">
+                <if test="startDate !=null">
+                    and ca2.limit_time &gt;= from_unixtime(#{startDate})
+                </if>
+                <if test="endDate !=null">
+                    and ca2.limit_time &lt;= from_unixtime(#{endDate})
+                </if>
+            </when>
+            <otherwise>
+                and ca2.limit_time is null
+            </otherwise>
+        </choose>
+    </select>
+    <select id="getMinutes" resultType="Integer">
+        SELECT
+        IF (
+            submit_time = NULL,
+            TIMESTAMPDIFF(
+                SECOND,
+                create_time,
+                start_time
+            ),
+            TIMESTAMPDIFF(
+                SECOND,
+                create_time,
+                start_time
+            )
+        ) AS seconds
+        FROM
+            cos_quiz_record
+        WHERE
+            tester_id = #{testerId}
+        AND quiz_id = #{quizId}
+        ORDER BY create_time ASC
+        LIMIT 1
+    </select>
+
+    <select id="getQuizRecordInfo" resultType="java.util.Map">
+       SELECT
+            a.*
+        FROM
+            cos_quiz_record a
+        LEFT JOIN cos_quiz b ON a.quiz_id = b.id
+        LEFT JOIN cos_user_submit_record c ON a.id = c.origin_id
+
+        WHERE a.quiz_id= #{originId}
+        AND  a.tester_id  = #{userId}
+        AND  a.submit_time = #{submitTime}
+    </select>
+
+    <select id="getQuizSubjectivityList" resultType="com.wdcloud.lms.core.base.vo.QuizSubjectivityDataListVo">
+        SELECT
+           	a.id,
+            a.quiz_record_id AS quizRecordId,
+            a.question_id AS questionsId,
+            a.title AS questionsTitle,
+            a.content AS content,
+            a.correct_comment AS correctComment,
+            a.wrong_comment AS wrongComment,
+            a.general_comment AS generalComment,
+            a.score AS score,
+            a.seq AS seq,
+            a.grade_score AS gradeScore,
+            b.reply AS answer
+        FROM
+            cos_quiz_question_record a
+        LEFT JOIN cos_quiz_question_reply_record b ON a.id = b.quiz_question_record_id
+        WHERE
+            a.type = #{type}
+        AND quiz_record_id = #{quizRecordId}
+        ORDER BY
+            a.seq ASC
+    </select>
+
+    <select id="getObjectiveList" resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            cos_quiz_question_record a
+        WHERE
+            a.type IN (1, 2, 3)
+        AND quiz_record_id = #{quizRecordId}
+        ORDER BY
+            a.seq ASC
+
+    </select>
+
+    <select id="getObjectiveInfoList" resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            cos_quiz_question_option_record
+        WHERE
+            quiz_question_record_id = #{quizQuestionRecordId}
+        ORDER BY
+            seq ASC
+    </select>
+
+    <resultMap id="getObjectiveListResultMap" type="com.wdcloud.lms.core.base.vo.QuizObjectiveDataListVo">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="quizRecordId" jdbcType="BIGINT" property="quizRecordId"/>
+        <result column="questionId" jdbcType="BIGINT" property="questionId"/>
+        <result column="questionsTitle" jdbcType="BIGINT" property="questionsTitle"/>
+        <result column="type" jdbcType="INTEGER" property="type"/>
+        <result column="gradeScore" jdbcType="INTEGER" property="gradeScore"/>
+        <result column="score" jdbcType="INTEGER" property="score"/>
+        <result column="seq" jdbcType="INTEGER" property="seq"/>
+        <result column="content" jdbcType="LONGVARCHAR" property="content"/>
+        <result column="correctComment" jdbcType="LONGVARCHAR" property="correctComment"/>
+        <result column="wrongComment" jdbcType="LONGVARCHAR" property="wrongComment"/>
+        <result column="generalComment" jdbcType="LONGVARCHAR" property="generalComment"/>
+        <collection property="option" columnPrefix="option_" ofType="com.wdcloud.lms.core.base.model.QuizQuestionOptionRecord">
+            <result column="id" jdbcType="BIGINT" property="id"/>
+            <result column="quiz_question_record_id" jdbcType="BIGINT" property="quizQuestionRecordId"/>
+            <result column="question_option_id" jdbcType="BIGINT" property="questionOptionId"/>
+            <result column="code" jdbcType="VARCHAR" property="code"/>
+            <result column="content" jdbcType="VARCHAR" property="content"/>
+            <result column="explanation" jdbcType="VARCHAR" property="explanation"/>
+            <result column="is_correct" jdbcType="INTEGER" property="isCorrect"/>
+            <result column="seq" jdbcType="INTEGER" property="seq"/>
+            <result column="is_choice" jdbcType="INTEGER" property="isChoice"/>
+        </collection>
+    </resultMap>
+
+    <select id="getObjectiveDataList" resultMap="getObjectiveListResultMap">
+        SELECT
+            a.id,
+            a.quiz_record_id AS quizRecordId,
+            a.question_id AS questionId,
+            a.type AS type,
+            a.title AS questionsTitle,
+            a.grade_score AS gradeScore,
+            a.score AS score,
+            a.seq AS seq,
+            a.content AS content,
+            a.correct_comment AS correctComment,
+            a.wrong_comment AS wrongComment,
+            a.general_comment AS generalComment,
+            b.id AS option_id,
+            b.quiz_question_record_id AS option_quiz_question_record_id,
+            b.question_option_id AS option_question_option_id,
+            b.CODE AS option_code,
+            b.content AS option_content,
+            b.explanation AS option_explanation,
+            b.is_correct AS option_correct,
+            b.seq AS option_seq,
+            b.is_choice AS option_is_choice
+        FROM
+            cos_quiz_question_record a
+        LEFT JOIN cos_quiz_question_option_record b ON a.id = b.quiz_question_record_id
+        WHERE
+            a.type IN (1, 2, 3)
+        AND quiz_record_id = #{quizRecordId}
+        ORDER BY
+            a.seq,b.seq
+    </select>
+</mapper>

@@ -1,0 +1,493 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.UserSubmitRecordExtMapper">
+
+    <select id="queryGradeTodo" resultType="com.wdcloud.lms.core.base.vo.GradeTodoVo">
+        select
+        course_id as courseId,
+        origin_type as originType,
+        count(*) todoNumber
+        from cos_user_submit_record
+        <where>
+            course_id in (
+            <foreach collection="list" item="courseId" separator=",">
+                #{courseId}
+            </foreach>
+            )
+            and is_graded = ${@com.wdcloud.lms.core.base.enums.Status@NO.getStatus()}
+        </where>
+        group by course_id, origin_type
+    </select>
+
+    <!-- 依据originId AND Origintype删除 -->
+    <resultMap id="getByOriginIdAndOriginTypeResultMap" type="com.wdcloud.lms.core.base.model.UserSubmitRecord"
+               extends="com.wdcloud.lms.core.base.mapper.UserSubmitRecordMapper.BaseResultMap">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="course_id" jdbcType="BIGINT" property="courseId"/>
+        <result column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="study_group_id" jdbcType="BIGINT" property="studyGroupId"/>
+        <result column="assignment_group_item_id" jdbcType="BIGINT" property="assignmentGroupItemId"/>
+        <result column="origin_type" jdbcType="INTEGER" property="originType"/>
+        <result column="origin_id" jdbcType="BIGINT" property="originId"/>
+        <result column="last_submit_time" jdbcType="TIMESTAMP" property="lastSubmitTime"/>
+        <result column="submit_count" jdbcType="INTEGER" property="submitCount"/>
+        <result column="is_graded" jdbcType="INTEGER" property="isGraded"/>
+        <result column="need_grade" jdbcType="INTEGER" property="needGrade"/>
+        <result column="is_overdue" jdbcType="INTEGER" property="isOverdue"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId"/>
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId"/>
+    </resultMap>
+    <select id="getByOriginIdAndOriginType" resultMap="getByOriginIdAndOriginTypeResultMap">
+        select id,
+               course_id,
+               user_id,
+               study_group_id,
+               assignment_group_item_id,
+               origin_type,
+               origin_id,
+               last_submit_time,
+               submit_count,
+               is_graded,
+               need_grade,
+               is_overdue,
+               create_time,
+               update_time,
+               create_user_id,
+               update_user_id
+        from cos_user_submit_record
+        where origin_id = #{originId}
+          and origin_type = #{originType}
+
+    </select>
+    <select id="countIsGrade" resultType="com.wdcloud.lms.core.base.vo.UserSubmitRecordVo">
+        SELECT
+            cusr.origin_id originId,
+            cusr.origin_type originType,
+            sum(case when cusr.is_graded =1  then 1 else 0 end ) AS graderIdcount,
+            sum(case when cusr.is_graded=0 then 1 else 0 end ) as unGraderIdcount
+         FROM cos_user_submit_record cusr
+        where cusr.origin_type=#{originIdType} AND cusr.origin_id=#{originId} AND cusr.need_grade=#{status}
+        GROUP BY cusr.origin_id,cusr.origin_type
+    </select>
+
+
+    <select id="getUserSubmitRecordNumber" resultType="Integer">
+        SELECT
+        COUNT(*) studentCount
+        FROM cos_user_submit_record
+        WHERE
+        is_graded=1
+        AND need_grade = ${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()}
+        AND origin_type= #{originType}
+        AND origin_id =#{originId}
+        <if test="studyGroupId!=null and studyGroupId!=''">
+            AND study_group_id = #{studyGroupId}
+        </if>
+    </select>
+
+    <select id="getGradedUserSubmitRecordInfo" resultType="com.wdcloud.lms.core.base.vo.GradeUserSubmitRecordVo">
+        SELECT (SELECT COUNT(*) FROM cos_user_submit_record
+        WHERE
+        need_grade =${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()} AND is_graded = 0
+        <if test="originType!=null and originType!=''">
+            AND origin_type = #{originType}
+        </if>
+        <if test="originId!=null and originId!=''">
+            AND origin_id = #{originId}
+        </if>
+        <if test="studyGroupId!=null and studyGroupId!=''">
+            AND study_group_id = #{studyGroupId}
+        </if>
+
+        ) unGraded,COUNT(*) graded
+
+        FROM cos_user_submit_record
+        WHERE
+        is_graded = ${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()}
+        AND need_grade =${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()}
+        <if test="originType!=null and originType!=''">
+            AND origin_type = #{originType}
+        </if>
+        <if test="originId!=null and originId!=''">
+            AND origin_id = #{originId}
+        </if>
+        <if test="studyGroupId!=null and studyGroupId!=''">
+            AND study_group_id = #{studyGroupId}
+        </if>
+
+    </select>
+    <select id="getCosUserSubmitTime" resultType="com.wdcloud.lms.core.base.vo.CosUserSubmitTimeVO">
+        SELECT
+        b.limit_time AS limitTime,
+        a.user_id AS userId,
+        a.last_submit_time AS lastSubmitTime,
+        a.submit_count AS submitCount,
+        a.is_graded AS isGrade,
+        a.need_grade AS needGrade,
+        a.is_overdue AS isOverdue
+        FROM
+        cos_user_submit_record a
+        LEFT JOIN cos_assign b ON (
+        a.origin_id = b.origin_id
+        AND a.origin_type = b.origin_type
+        )
+        WHERE
+        a.origin_type = #{originType}
+        AND a.origin_id = #{originId}
+        <if test="studyGroupId != null">
+            AND a.study_group_id = #{studyGroupId}
+        </if>
+        <if test="userId!=null and userId!=''">
+            AND a.user_id = #{userId}
+        </if>
+        AND a.need_grade = ${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()}
+        ORDER BY last_submit_time ASC
+        LIMIT 1
+    </select>
+    <select id="getQuizUserSubmitRecordTime" resultType="java.util.Map">
+        SELECT * FROM cos_user_submit_record a
+        WHERE
+        a.need_grade = ${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()}
+        <if test="originType!=null and originType!=''">
+            AND a.origin_type = #{originType}
+        </if>
+        <if test="originId!=null and originId!=''">
+            AND a.origin_id IN (
+            SELECT
+            id
+            FROM
+            cos_quiz_record
+            WHERE
+            quiz_id = #{originId}
+            )
+        </if>
+        <if test="studyGroupId != null and studyGroupId != '' or studyGroupId == 0">
+            AND a.study_group_id = #{studyGroupId}
+        </if>
+        <if test="userId!=null and userId!=''">
+            AND a.user_id = #{userId}
+        </if>
+        ORDER BY
+        a.last_submit_time ASC
+    </select>
+
+    <select id="getUserSubmitRecordTime" resultType="java.util.Map">
+        SELECT * FROM cos_user_submit_record a
+        WHERE
+        a.need_grade = ${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()}
+        <if test="originType!=null and originType!=''">
+            AND a.origin_type = #{originType}
+        </if>
+        <if test="originId!=null and originId!=''">
+            AND a.origin_id = #{originId}
+        </if>
+        <if test="studyGroupId != null and studyGroupId != '' or studyGroupId == 0">
+            AND a.study_group_id = #{studyGroupId}
+        </if>
+        <if test="userId!=null and userId!=''">
+            AND a.user_id = #{userId}
+        </if>
+        ORDER BY
+        a.last_submit_time ASC
+    </select>
+    <select id="getGradeStudentList" resultType="com.wdcloud.lms.core.base.vo.StudentDataListVo">
+        SELECT DISTINCT
+        '1' AS type,
+        a.user_id AS id,
+        a.user_id AS userId,
+        b.nickname AS nickName,
+        b.username AS studentName,
+        b.username AS groupName,
+        b.full_name AS fullName,
+        b.avatar_file_id AS studentFile,
+        a.last_submit_time AS lastSubmitTime
+        FROM cos_user_submit_record a
+        LEFT JOIN sys_user b ON a.user_id = b.id
+        WHERE 1=1
+        <if test="originType!=null and originType!=''">
+            AND a.origin_type = #{originType}
+        </if>
+        <if test='originType == "1" '>
+            AND a.origin_id IN (
+            SELECT
+            id
+            FROM
+            cos_assignment
+            WHERE
+            id = #{originId}
+            )
+        </if>
+        <if test='originType == "2" '>
+            AND a.origin_id IN (
+            SELECT
+            id
+            FROM
+            cos_discussion
+            WHERE
+            id = #{originId}
+            )
+        </if>
+        <if test='originType == "3" '>
+            AND a.origin_id IN (
+            SELECT
+            quiz_id
+            FROM
+            cos_quiz_record
+            WHERE
+            quiz_id = #{originId}
+            )
+        </if>
+
+        <if test='isGraded == "0" '>
+            AND a.is_graded = #{isGraded}
+        </if>
+        <if test='isGraded =="1" '>
+            AND a.is_graded = #{isGraded}
+        </if>
+        <if test='sequence =="1" '>
+            ORDER BY a.last_submit_time ASC
+        </if>
+        <if test='sequence =="2" '>
+            ORDER BY b.nickname ASC
+        </if>
+    </select>
+
+    <select id="getGroupStudentList" resultType="java.util.Map">
+        SELECT DISTINCT
+        e.user_id,
+        h.nickname,
+        h.username,
+        h.avatar_file_id,
+        e.last_submit_time,
+        h.full_name
+        FROM
+        cos_user_submit_record e
+        LEFT JOIN sys_user h ON e.user_id = h.id
+        WHERE
+        1 = 1
+        AND e.user_id IN (
+        SELECT
+        f.user_id
+        FROM
+        cos_study_group_user f
+        WHERE
+        f.study_group_id IN (
+
+        SELECT
+        c.id
+        FROM
+        <if test='originType == "1" '>
+            cos_assignment a
+        </if>
+        <if test='originType == "2" '>
+            cos_discussion a
+        </if>
+        LEFT JOIN cos_study_group_set b ON a.study_group_set_id = b.id
+        LEFT JOIN cos_study_group c ON b.id = c.study_group_set_id
+        WHERE
+        a.id = #{originId}
+        AND a.study_group_set_id = #{studyGroupSetId}
+        )
+        )
+        AND e.origin_type = #{originType}
+        AND e.origin_id = #{originId}
+        <if test='isGraded == "0" '>
+            AND e.is_graded = #{isGraded}
+        </if>
+        <if test='isGraded =="1" '>
+            AND e.is_graded = #{isGraded}
+        </if>
+        ORDER BY
+        e.last_submit_time DESC
+    </select>
+
+    <select id="getGroupList" resultType="java.util.Map">
+        SELECT
+        b.id,
+        b.`name`
+        FROM
+        cos_study_group_user a
+        LEFT JOIN cos_study_group b ON a.study_group_id = b.id
+        WHERE
+        a.user_id = #{userId}
+        AND b.course_id= #{courseId}
+
+        <if test='sequence =="1"'>
+            ORDER BY b.`name` ASC
+        </if>
+
+    </select>
+
+    <select id="getUserGradeList" resultType="java.util.Map">
+        SELECT
+        *
+        FROM
+        cos_user_submit_record
+        WHERE
+        need_grade = ${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()}
+        AND is_graded =#{isGraded}
+        AND origin_type= #{originType}
+        AND origin_id =#{originId}
+        <if test="studyGroupId!=null and studyGroupId!=''">
+            AND study_group_id = #{studyGroupId}
+        </if>
+    </select>
+
+    <select id="getUserNotGroupGradeList" resultType="java.util.Map">
+        SELECT
+        *
+        FROM
+        cos_user_submit_record
+        WHERE
+        need_grade = ${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()}
+        AND is_graded =#{isGraded}
+        AND origin_type= #{originType}
+        AND origin_id =#{originId}
+
+    </select>
+
+    <select id="getNotStudyGroupUserSubmit" resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+        cos_user_submit_record a
+        WHERE
+         a.origin_type= #{originType}
+        AND a.origin_id =#{originId}
+        AND a.course_id =#{courseId}
+        AND a.study_group_id IS NULL
+    </select>
+
+
+    <select id="getNotGradeStudyGroupUserSubmit" resultType="java.util.Map">
+        SELECT
+        DISTINCT study_group_id
+        FROM
+        cos_user_submit_record
+        WHERE
+        origin_id = #{originId}
+        AND origin_type = #{originType}
+        AND is_graded =  ${@com.wdcloud.lms.core.base.enums.Status@NO.getStatus()}
+        AND study_group_id IS NOT NULL
+    </select>
+
+
+    <select id="getStudyGroupSetUserList" resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            cos_user_submit_record a
+        WHERE
+            user_id IN (
+                SELECT
+                    user_id
+                FROM
+                    cos_study_group_user
+                WHERE
+                    study_group_id IN (
+                        SELECT
+                            id
+                        FROM
+                            cos_study_group
+                        WHERE
+                            study_group_set_id = #{studyGroupSetId}
+                    )
+            )
+        AND need_grade = ${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()}
+        AND is_graded = #{isGraded}
+        AND origin_type= #{originType}
+        AND origin_id =#{originId}
+
+    </select>
+
+
+    <select id="getCourseGradeTaskSubmitCount" resultType="com.wdcloud.lms.core.base.vo.CourseSubmitCountVo">
+        select
+        course_id courseId,
+        count(*) submitCount
+        from cos_user_submit_record
+        <where>
+            need_grade = ${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()}
+            <if test="courseIds != null and courseIds.size() > 0">
+                and course_id in
+                <foreach collection="courseIds" item="courseId" separator="," open="(" close=")">
+                    #{courseId}
+                </foreach>
+            </if>
+        </where>
+        group by course_id
+    </select>
+    <select id="findUserSubmitRecord" resultType="com.wdcloud.lms.core.base.vo.UserSubmitRecordVo">
+       SELECT cusr.id,cusr.course_id AS courseId,cusr.origin_id AS originId,
+        cusr.origin_type AS originType,cusr.user_id AS userId,cusr.study_group_id AS studyGroupId,
+        cusr.is_graded AS isGraded,cusr.is_overdue AS isOverdue,cusr.create_time as createTime
+        FROM cos_user_submit_record cusr
+        where cusr.course_id=#{courseId}
+              AND cusr.need_grade=${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()}
+              and cusr.origin_id=#{originId}
+              AND cusr.origin_type=#{originIdType}
+              AND (cusr.user_id=#{userId} or  cusr.study_group_id in (
+                        SELECT study_group_id FROM cos_study_group_user where course_id=#{courseId} AND user_id=#{userId}
+                            )
+        ) ORDER BY cusr.create_time LIMIT 1
+    </select>
+
+    <select id="getSubmitStudyGroupDistinct" resultType="java.util.Map">
+       SELECT DISTINCT
+            study_group_id
+        FROM
+            cos_user_submit_record
+        WHERE
+            origin_type = #{originType}
+        AND origin_id = #{originId}
+        AND course_id = #{courseId}
+    </select>
+    <select id="submitRecordQuery" resultType="com.wdcloud.lms.core.base.vo.UserSubmitRecordVo">
+    SELECT
+       cusr.user_id as userId,cusr.study_group_id AS studyGroupId,cusr.origin_id AS originId,
+       cusr.origin_type AS originType,cusr.is_overdue as isOverdue,cusr.create_time  AS createTime
+        FROM
+	cos_user_submit_record cusr
+        where cusr.course_id=#{courseId}
+              AND cusr.need_grade=${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()}  AND (
+        cusr.user_id=#{userId} or  cusr.study_group_id in (
+           SELECT study_group_id FROM cos_study_group_user where course_id=#{courseId} AND user_id=#{userId}
+                            )
+        )
+        ORDER BY cusr.create_time
+    </select>
+    <select id="findUserSubmitRecordByStuIds" resultType="com.wdcloud.lms.core.base.vo.UserSubmitRecordVo">
+        SELECT cusr.id,cusr.course_id AS courseId,cusr.origin_id AS originId,
+               cusr.origin_type AS originType,cusr.user_id AS userId,cusr.study_group_id AS studyGroupId,
+               cusr.is_graded AS isGraded,cusr.is_overdue AS isOverdue,cusr.create_time as createTime
+        FROM cos_user_submit_record cusr
+        where cusr.course_id=#{courseId}
+          AND cusr.need_grade=1
+          and cusr.origin_id=#{originId}
+          AND cusr.origin_type=#{originIdType}
+          AND cusr.user_id in <foreach collection="stuIds" open="(" close=")" item="id" separator=",">#{id}</foreach>
+          order by cusr.create_time
+    </select>
+    <select id="countIsGradeBatch" resultType="com.wdcloud.lms.core.base.vo.UserSubmitRecordVo">
+        SELECT
+            cusr.origin_id originId,
+            cusr.origin_type originType,
+            sum(case when cusr.is_graded =1  then 1 else 0 end ) AS graderIdcount,
+            sum(case when cusr.is_graded=0 then 1 else 0 end ) as unGraderIdcount
+        FROM cos_user_submit_record cusr
+        where   cusr.need_grade=1
+          AND cusr.origin_id in <foreach collection="originIds" open="(" close=")" item="id" separator=",">#{id}</foreach>
+        GROUP BY cusr.origin_id,cusr.origin_type
+    </select>
+    <select id="isSubmited" resultType="java.lang.Integer">
+        SELECT
+        count(cusr.id)
+        FROM cos_user_submit_record cusr
+        where   cusr.need_grade=1
+        AND cusr.origin_id=#{originId}
+        AND cusr.origin_type=#{originType}
+    </select>
+
+</mapper>

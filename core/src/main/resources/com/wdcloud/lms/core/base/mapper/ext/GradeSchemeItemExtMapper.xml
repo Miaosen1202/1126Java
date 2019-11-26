@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.GradeSchemeItemExtMapper">
+
+    <insert id="batchInsert">
+        insert into cos_grade_scheme_item(grade_scheme_id, code, range_start, range_end)
+        VALUES
+        <foreach collection="schemeItems" separator="," item="item">
+            (#{item.gradeSchemeId}, #{item.code}, #{item.rangeStart}, #{item.rangeEnd})
+        </foreach>
+    </insert>
+
+</mapper>
+

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.CertificationUserExtMapper">
+
+    <insert id="batchSave" keyProperty="id" useGeneratedKeys="true">
+        insert into cos_certification_user (
+        user_id,
+        certification_id,
+        enroll_time,
+        create_user_id,
+        update_user_id
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.userId},
+            #{item.certificationId},
+            #{item.enrollTime},
+            #{item.createUserId},
+            #{item.updateUserId}
+            )
+        </foreach>
+    </insert>
+
+    <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.vo.certification.CertificationUserVO">
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="user_id" jdbcType="BIGINT" property="userId" />
+        <result column="certification_id" jdbcType="BIGINT" property="certificationId" />
+        <result column="status" jdbcType="INTEGER" property="status" />
+        <result column="enroll_time" jdbcType="TIMESTAMP" property="enrollTime" />
+        <result column="complete_time" jdbcType="TIMESTAMP" property="completeTime" />
+        <result column="proof_file_id" jdbcType="BIGINT" property="proofFileId" />
+        <result column="upload_time" jdbcType="TIMESTAMP" property="uploadTime" />
+        <result column="unenrolll_time" jdbcType="TIMESTAMP" property="unenrolllTime" />
+        <result column="reject_time" jdbcType="TIMESTAMP" property="rejectTime" />
+        <result column="reject_desc" jdbcType="VARCHAR" property="rejectDesc" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+        <result column="username" jdbcType="VARCHAR" property="username" />
+        <result column="full_name" jdbcType="VARCHAR" property="fullName" />
+        <result column="file_url" jdbcType="VARCHAR" property="fileUrl" />
+        <result column="file_name" jdbcType="VARCHAR" property="fileName" />
+    </resultMap>
+
+    <select id="findCertificationUserListByAdmin"
+            resultMap="BaseResultMap">
+        select
+            t1.*,
+            t3.username,
+            t3.full_name,
+            t4.file_url,
+            t4.file_name
+        from cos_certification_user t1
+        join sys_user t3 on t3.id=t1.user_id
+        left join sys_user_file t4 on t4.id=t1.proof_file_id
+        where
+              t1.certification_id=#{certificationId}
+              <if test="searchKey!=null and searchKey!=''">
+                  and t3.username like concat('%',#{searchKey},'%')
+              </if>
+              <if test="status!=null and status!='' and status!=-1">
+                and t1.status=#{status}
+              </if>
+        order by t3.username <if test="orderBy==1">desc</if>
+    </select>
+    <select id="findCertListForSync"
+            resultType="com.wdcloud.lms.core.base.vo.certification.LearnerCertificationVO">
+        select
+          t1.op_day opDay,
+          t1.validity,
+          t1.type,
+          t2.id,
+          t2.user_id userId,
+          t2.certification_id certificationId,
+          t2.enroll_time enrollTime,
+          t2.complete_time completeTime,
+          t2.expire_time expireTime
+        from
+        cos_certification t1
+        join cos_certification_user t2 on t2.certification_id=t1.id
+        where
+          t1.is_delete=0
+          <if test="type!=null and type!=''">
+              and t1.type=#{type}
+          </if>
+          and t1.status in (1,2)
+          and t2.status =#{status}
+    </select>
+</mapper>

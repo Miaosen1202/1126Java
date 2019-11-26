@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.SisImportTermMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.SisImportTerm">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="batch_code" jdbcType="VARCHAR" property="batchCode" />
+    <result column="target_id" jdbcType="BIGINT" property="targetId" />
+    <result column="org_tree_id" jdbcType="VARCHAR" property="orgTreeId" />
+    <result column="term_id" jdbcType="VARCHAR" property="termId" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="start_date" jdbcType="VARCHAR" property="startDate" />
+    <result column="end_date" jdbcType="VARCHAR" property="endDate" />
+    <result column="operation" jdbcType="VARCHAR" property="operation" />
+    <result column="op_user_id" jdbcType="BIGINT" property="opUserId" />
+    <result column="op_user_org_tree_id" jdbcType="VARCHAR" property="opUserOrgTreeId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+</mapper>

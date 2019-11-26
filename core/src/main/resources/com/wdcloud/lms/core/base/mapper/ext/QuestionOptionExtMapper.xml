@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.QuestionOptionExtMapper">
+    <!-- 批量添加-->
+    <insert id="batchInsert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO cos_question_option
+        (
+        `question_id`,
+        `code`,
+        `content`,
+        `explanation`,
+        `is_correct`,
+        `seq`,
+        `create_user_id`,
+        `update_user_id`)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.questionId,jdbcType=BIGINT},
+            #{item.code,jdbcType=VARCHAR},
+            #{item.content,jdbcType=VARCHAR},
+            #{item.explanation,jdbcType=VARCHAR},
+            #{item.isCorrect,jdbcType=VARCHAR},
+            #{item.seq,jdbcType=INTEGER},
+            #{item.createUserId,jdbcType=BIGINT },
+            #{item.updateUserId,jdbcType=BIGINT})
+        </foreach>
+    </insert>
+
+    <!-- 批量更新 -->
+
+    <update id="batchUpdate" parameterType="java.util.List">
+        update cos_question_option set
+        question_id=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.questionId,jdbcType=BIGINT}
+        </foreach>
+        ,code=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.code,jdbcType=VARCHAR}
+        </foreach>
+        ,content=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.content,jdbcType=VARCHAR}
+        </foreach>
+        ,explanation=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.explanation,jdbcType=VARCHAR}
+        </foreach>
+        ,is_correct=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.isCorrect,jdbcType=VARCHAR}
+        </foreach>
+        ,seq=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.seq,jdbcType=INTEGER}
+        </foreach>
+        ,update_user_id=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.updateUserId,jdbcType=BIGINT}
+        </foreach>
+        where id  in
+        <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+            #{item.id,jdbcType=BIGINT}
+        </foreach>
+
+    </update>
+
+
+    <!--<update id="batchUpdate"  keyProperty="id" useGeneratedKeys="true" parameterType="java.util.List">-->
+        <!--<foreach collection="list" item="item" index="index" open="" close="" separator=";">-->
+            <!--update cos_question_option set-->
+            <!--<if test="item.questionId!= null">-->
+                <!--question_id=#{item.questionId},-->
+            <!--</if>-->
+            <!--<if test="item.code!= null">-->
+                   <!--code=#{item.code},-->
+             <!--</if>-->
+            <!--<if test="item.content!= null">-->
+                    <!--content=#{item.content},-->
+            <!--</if>-->
+            <!--<if test="item.explanation!= null">-->
+                <!--explanation=#{item.explanation},-->
+           <!--</if>-->
+            <!--<if test="item.isCorrect!= null">-->
+                    <!--is_correct=#{item.isCorrect},-->
+            <!--</if>-->
+            <!--<if test="item.seq!= null">-->
+                    <!--seq=#{item.seq},-->
+            <!--</if>-->
+            <!--<if test="item.updateUserId!= null">-->
+                    <!--update_user_id=#{item.updateUserId},-->
+            <!--</if>-->
+                <!--update_time=#{item.updateTime}-->
+              <!--where id = #{item.id}-->
+        <!--</foreach>-->
+    <!--</update>-->
+
+    <!-- 批量删除 -->
+    <delete id="batchDelete" parameterType="java.util.List">
+            delete from cos_question_option where id in
+        <foreach collection="list" item="item" index="index"  open="("
+                 separator="," close=")">
+            #{item.id}
+        </foreach>
+    </delete>
+    <!-- 依据问题ID关联查询 -->
+    <resultMap id="getByquestionIdResultMap" type="com.wdcloud.lms.core.base.vo.QuestionVO" extends="com.wdcloud.lms.core.base.mapper.QuizMapper.BaseResultMap">
+        <association property="options" columnPrefix="option_" resultMap="com.wdcloud.lms.core.base.mapper.QuestionOptionMapper.BaseResultMap">
+        </association>
+    </resultMap>
+    <select id="getByquestionId" resultMap="getByquestionIdResultMap">
+
+        SELECT cqs.id,
+        cqs.course_id,
+        cqs.group_id,
+        cqs.type,
+        cqs.title,
+        cqs.content,
+        cqs.correct_comment,
+        cqs.wrong_comment,
+        cqs.general_comment,
+        cqs.is_template,
+        cqs.question_bank_id,
+        cqs.question_template_id,
+        cqs.score,
+        cqs.seq,
+        cqs.create_time,
+        cqs.update_time,
+        cqs.create_user_id,
+        cqs.update_user_id,
+        cqso.id as option_id,
+        cqso.question_id as option_question_id,
+        cqso.code as option_code,
+        cqso.content as option_content,
+        cqso.explanation as option_explanation,
+        cqso.is_correct as option_is_correct,
+        cqso.seq as option_seq,
+        cqso.create_time as option_create_time,
+        cqso.update_time as option_update_time,
+        cqso.create_user_id as option_create_user_id,
+        cqso.update_user_id as option_update_user_id
+        FROM cos_question as cqs left join cos_question_option as cqso on cqs.id=cqso.question_id
+        <where>
+         cqs.id=#{questionId};
+        </where>
+
+    </select>
+
+
+</mapper>

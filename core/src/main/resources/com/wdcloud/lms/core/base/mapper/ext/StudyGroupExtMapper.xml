@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.StudyGroupExtMapper">
+
+
+    <select id="findJoined" resultMap="com.wdcloud.lms.core.base.mapper.StudyGroupMapper.BaseResultMap">
+        select
+          g.*
+        from
+          cos_study_group g
+          left join cos_study_group_user gu on g.id = gu.study_group_id
+        <where>
+            gu.user_id = #{userId}
+            <if test="courseId != null">
+                g.course_id = #{courseId}
+            </if>
+        </where>
+    </select>
+
+    <update id="updateMaxMemberNumber">
+        update cos_study_group
+        set max_member_number = #{maxMemberNumber}
+        <where>
+            study_group_set_id = #{studyGroupSetId}
+        </where>
+    </update>
+
+    <select id="findStudyGroupList" resultMap="com.wdcloud.lms.core.base.mapper.StudyGroupMapper.BaseResultMap">
+        SELECT DISTINCT a.* FROM cos_study_group a
+        LEFT JOIN cos_study_group_set b ON a.study_group_set_id=b.id
+        LEFT JOIN cos_assignment c ON b.id = c.study_group_set_id
+        <where>
+            c.study_group_set_id = #{studyGroupSetId}
+        </where>
+    </select>
+
+    <select id="findBySisIds" resultMap="com.wdcloud.lms.core.base.mapper.StudyGroupMapper.BaseResultMap">
+        select
+          *
+        from cos_study_group
+        <where>
+            and course_id in (
+                select id from cos_course c where c.org_id in (
+                  select id from sys_org where tree_id like concat(#{rootOrgTreeId}, "%")
+                )
+            )
+            <if test="sisIds != null and sisIds.size() > 0">
+                and sis_id in
+                <foreach collection="sisIds" item="sisId" separator="," open="(" close=")">
+                    #{sisId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <resultMap id="findStudyGroupListBySetIdMap" type="com.wdcloud.lms.core.base.vo.StudyGroupVO" extends="com.wdcloud.lms.core.base.mapper.StudyGroupMapper.BaseResultMap">
+
+    </resultMap>
+    <select id="findStudyGroupListBySetId" resultMap="findStudyGroupListBySetIdMap">
+        select * from cos_study_group where study_group_set_id=#{studyGroupSetId}
+    </select>
+
+    <select id="findStudyGroupByGroupSetAndUser" resultType="String">
+        SELECT
+            g.name
+        FROM
+            cos_study_group g
+                JOIN cos_study_group_user gu ON g.id = gu.study_group_id
+        WHERE
+            g.study_group_set_id = #{studyGroupSetId}
+          AND gu.user_id = #{userId};
+    </select>
+</mapper>

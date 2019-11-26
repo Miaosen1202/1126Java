@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.EventExtMapper">
+
+    <insert id="batchInsert" keyProperty="id" useGeneratedKeys="true">
+        insert into sys_event (
+        calendar_type, user_id, course_id, study_group_id, title, address, location,
+        start_time, end_time,create_user_id, update_user_id,description
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+           #{item.calendarType,jdbcType=INTEGER},#{item.userId,jdbcType=BIGINT},
+           #{item.courseId,jdbcType=BIGINT},#{item.studyGroupId,jdbcType=BIGINT},#{item.title,jdbcType=VARCHAR},
+           #{item.address,jdbcType=VARCHAR},#{item.location,jdbcType=VARCHAR},#{item.startTime,jdbcType=TIMESTAMP},
+           #{item.endTime,jdbcType=TIMESTAMP},
+           #{item.createUserId,jdbcType=BIGINT},#{item.updateUserId,jdbcType=BIGINT},#{item.description,jdbcType=LONGVARCHAR}
+            )
+        </foreach>
+    </insert>
+    <resultMap id="findEventListMap" type="com.wdcloud.lms.core.base.vo.EventVo" extends="com.wdcloud.lms.core.base.mapper.EventMapper.BaseResultMap">
+            <result column="userName" property="userName"></result>
+            <result column="courseName" property="courseName"></result>
+            <result column="studyGroupName" property="studyGroupName"></result>
+    </resultMap>
+    <select id="findEventList" resultMap="findEventListMap">
+        select
+          t1.*,
+          <if test="calendarType=='1'.toString()">t2.full_name userName</if>
+          <if test="calendarType=='2'.toString()">t2.name courseName</if>
+          <if test="calendarType=='3'.toString()">t2.name studyGroupName</if>
+        from sys_event t1
+        <if test="calendarType=='1'.toString()">left join sys_user t2 on t2.id=t1.user_id</if>
+        <if test="calendarType=='2'.toString()">left join cos_course t2 on t2.id=t1.course_id</if>
+        <if test="calendarType=='3'.toString()">left join cos_study_group t2 on t2.id=t1.study_group_id</if>
+        where
+        t1.calendar_type=#{calendarType}
+        <choose>
+            <when test="startDate!=null and startDate!='' and endDate!=null and endDate!=''">
+                and t1.start_time &gt;= from_unixtime(#{startDate})
+                and t1.start_time &lt;= from_unixtime(#{endDate})
+            </when>
+            <otherwise>
+                and t1.start_time is null
+            </otherwise>
+        </choose>
+        <if test="calendarType=='1'.toString()">and t1.user_id=#{userId}</if>
+        <if test="calendarType=='2'.toString()">and t1.course_id in (${courseIds})</if>
+        <if test="calendarType=='3'.toString()">and t1.study_group_id in (${studyGroupIds})</if>
+        order by t1.start_time
+    </select>
+    <select id="findEventListByCourse" resultMap="findEventListMap">
+        select
+            t1.*
+        FROM
+            sys_event t1
+        WHERE
+            t1.calendar_type = 2
+          AND t1.course_id IN (#{courseIds})
+    </select>
+
+</mapper>

@@ -1,0 +1,5 @@
+course_id,group_category_id,category_name,status
+SSC_0001,SSG_0001,Group One,active
+SSC_0001,SSG_0002,Group Two,active
+SSC_0002,SSG_0003,Group One,active
+SSC_0003,SSG_0004,Group Four,active

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.AssignmentExtMapper">
+    <resultMap id="findCalendarAssignmentListMap" type="com.wdcloud.lms.core.base.vo.AssignmentVO"
+               extends="com.wdcloud.lms.core.base.mapper.AssignmentMapper.BaseResultMap">
+        <result column="userName" property="userName"/>
+        <result column="sectionName" property="sectionName"/>
+        <result column="assignType" property="assignType"/>
+        <result column="assignTableId" property="assignTableId"/>
+        <result column="dueTime" property="dueTime"/>
+    </resultMap>
+    <select id="findCalendarAssignmentList" resultMap="findCalendarAssignmentListMap">
+        select ca1.*,
+        ca2.limit_time as dueTime,
+        ca2.id as assignTableId,
+        ca2.assign_type as assignType ,
+        cs.name as sectionName,
+        su.username as userName
+        from cos_assignment ca1
+        join cos_assign ca2 on ca1.id = ca2.origin_id
+        left join cos_section cs on cs.id = ca2.assign_id
+        left join sys_user su on su.id = ca2.assign_id
+        where ca2.origin_type = ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@ASSIGNMENT.getType()}
+        and ca2.course_id in
+        <foreach collection="courseIds" item="courseId" separator="," open="(" close=")">
+            #{courseId}
+        </foreach>
+        <choose>
+            <when test="hasDueTime != null">
+                <if test="startDate !=null">
+                    and ca2.limit_time &gt;= from_unixtime(#{startDate})
+                </if>
+                <if test="endDate !=null">
+                    and ca2.limit_time &lt;= from_unixtime(#{endDate})
+                </if>
+            </when>
+            <otherwise>
+                and ca2.limit_time is null
+            </otherwise>
+        </choose>
+    </select>
+    <select id="findCalendarAssignmentListStudent" resultMap="findCalendarAssignmentListMap">
+        select ca1.*,
+        ca2.limit_time as dueTime,
+        ca2.id as assignTableId,
+        ca2.assign_type as assignType ,
+        cs.name as sectionName
+        from cos_assignment ca1
+          join cos_assign_user cau on cau.user_id=#{userId} and cau.origin_id=ca1.id and cau.origin_type= ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@ASSIGNMENT.getType()}
+        join cos_assign ca2 on ca1.id = ca2.origin_id
+        left join cos_section cs on cs.id = ca2.assign_id
+        where ca2.origin_type = ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@ASSIGNMENT.getType()}
+        and ca1.status=${@com.wdcloud.lms.core.base.enums.Status@YES.getStatus()}
+        and ca1.course_id in
+        <foreach collection="courseIds" item="courseId" separator="," open="(" close=")">
+            #{courseId}
+        </foreach>
+        <!--and ca2.id in-->
+        <!--<foreach collection="assignIds" item="assignId" separator="," open="(" close=")">-->
+            <!--#{assignId}-->
+        <!--</foreach>-->
+        <choose>
+            <when test="hasDueTime != null">
+                <if test="startDate !=null">
+                    and ca2.limit_time &gt;= from_unixtime(#{startDate})
+                </if>
+                <if test="endDate !=null">
+                    and ca2.limit_time &lt;= from_unixtime(#{endDate})
+                </if>
+            </when>
+            <otherwise>
+                and ca2.limit_time is null
+            </otherwise>
+        </choose>
+    </select>
+    <select id="finAssignmentSelectByGroupId" resultType="com.wdcloud.lms.core.base.model.Assignment">
+        SELECT
+            assign.id, assign.title
+        FROM
+            cos_assignment_group_item item,
+            cos_assignment assign
+        WHERE
+            item.origin_id = assign.id
+          AND item.origin_type = 1
+          AND item.assignment_group_id = #{assignmentGroupId}
+          AND assign.course_id = #{courseId};
+    </select>
+</mapper>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.DiscussionReplyExtMapper">
+
+    <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.vo.DiscussionReplyVO" extends="com.wdcloud.lms.core.base.mapper.DiscussionReplyMapper.BaseResultMap">
+        <result column="file_name" property="fileName"/>
+        <result column="file_url" property="fileUrl"/>
+        <result column="user_id" property="userId"/>
+        <result column="user_nickname" property="userNickname"/>
+        <result column="user_avatar_file_id" property="userAvatarFileId"/>
+        <result column="user_avatar_name" property="userAvatarName"/>
+        <result column="user_avatar_url" property="userAvatarUrl"/>
+    </resultMap>
+
+    <select id="findReply" resultMap="BaseResultMap">
+        select
+               distinct
+              t1.*,
+              t11.file_name,
+              t11.file_url,
+              t2.id user_id,
+              t2.full_name user_nickname,
+              t2.avatar_user_file_id user_avatar_file_id,
+              t3.file_name user_avatar_name,
+              t3.file_url user_avatar_url,
+              ifnull(t4.id,0) isRead
+         from
+             cos_discussion_reply t1
+        left join sys_user_file t11 on t11.id=t1.attachment_file_id
+        join sys_user t2 on t2.id=t1.create_user_id
+        left join sys_user_file t3 on t3.id=t2.avatar_user_file_id
+        left join cos_content_view_record t4 on t4.origin_type=2 and t4.origin_id=t1.id and t4.user_id=#{userId}
+        <where>
+            t1.is_deleted=0
+            and t1.discussion_id=#{discussionId}
+            <if test="studyGroupId!=null and studyGroupId!=''">
+                  and t1.study_group_id=#{studyGroupId}
+            </if>
+            <if test="replyId!=null and replyId!=''">
+                and t1.discussion_reply_id=#{replyId}
+            </if>
+            <if test="content!=null and content!=''">
+                and (t1.content like concat('%',#{content},'%')
+                or t2.full_name like concat('%',#{content},'%'))
+            </if>
+            <choose>
+                <when test="isRead==1">and t4.id is not null</when>
+                <when test="isRead==0">and t4.id is null</when>
+            </choose>
+        </where>
+        order by t1.create_time
+</select>
+    <select id="findDiscussionReplyReadCount" resultType="com.wdcloud.lms.core.base.vo.ReadCountDTO">
+        select
+            count(t1.id) replyTotal,
+            count(t2.id) replyReadTotal,
+            count(t1.id)-count(t2.id) replyNotReadTotal
+        from cos_discussion_reply t1
+         left join cos_content_view_record t2 on t2.origin_type=2 and t2.origin_id=t1.id and t2.user_id=#{userId}
+        where t1.is_deleted=0
+          and t1.discussion_id=#{discussionId}
+        group by t1.discussion_id
+    </select>
+
+    <select id="getDiscussionReplyList" resultMap="BaseResultMap">
+        select
+        t1.*,
+        t11.file_name,
+        t11.file_url,
+        t2.id user_id,
+        t2.full_name user_nickname,
+        t2.avatar_user_file_id user_avatar_file_id,
+        t3.file_name user_avatar_name,
+        t3.file_url user_avatar_url,
+        ifnull(t4.id,0) isRead
+        from
+        cos_discussion_reply t1
+        left join sys_user_file t11 on t11.id=t1.attachment_file_id
+        join sys_user t2 on t2.id=t1.create_user_id
+        left join sys_user_file t3 on t3.id=t2.avatar_user_file_id
+        left join cos_content_view_record t4 on t4.origin_type=2 and t4.origin_id=t1.id and t4.user_id=#{userId}
+        <where>
+            t1.is_deleted=0
+            and t1.discussion_id=#{discussionId}
+            <choose>
+                <when test="studyGroupId!=null and studyGroupId!=''">
+                    and t1.study_group_id=#{studyGroupId}
+                </when>
+                <otherwise>
+                    and t4.user_id = #{userId}
+                </otherwise>
+            </choose>
+        </where>
+        order by t1.create_time
+    </select>
+
+</mapper>

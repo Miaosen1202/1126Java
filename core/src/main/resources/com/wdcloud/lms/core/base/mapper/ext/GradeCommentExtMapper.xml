@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.GradeCommentExtMapper">
+
+    <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.vo.GradeCommentVO">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="course_id" jdbcType="BIGINT" property="courseId"/>
+        <result column="assignment_group_item_id" jdbcType="BIGINT" property="assignmentGroupItemId"/>
+        <result column="origin_type" jdbcType="INTEGER" property="originType"/>
+        <result column="origin_id" jdbcType="BIGINT" property="originId"/>
+        <result column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="study_group_id" jdbcType="BIGINT" property="studyGroupId"/>
+        <result column="attachment_file_id" jdbcType="BIGINT" property="attachmentFileId"/>
+        <result column="is_send_group_user" jdbcType="INTEGER" property="isSendGroupUser"/>
+        <result column="is_deleted" jdbcType="INTEGER" property="isDeleted"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId"/>
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId"/>
+        <result column="content" jdbcType="LONGVARCHAR" property="content"/>
+
+        <result column="username" jdbcType="VARCHAR" property="username"/>
+    </resultMap>
+
+    <select id="findAssignmentComment" resultMap="BaseResultMap">
+        SELECT cgc.*,su.username as username
+        FROM cos_grade_comment cgc
+        join sys_user su
+        on cgc.create_user_id = su.id
+        where cgc.origin_id = #{originId}
+        and cgc.origin_type = ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@ASSIGNMENT.getType()}
+        <if test="userId!=null">
+            and cgc.user_id=#{userId}
+        </if>
+        <if test="studyGroupId!=null">
+            and cgc.study_group_id=#{studyGroupId}
+        </if>
+        order by cgc.id desc
+    </select>
+
+
+    <select id="getGradedSummeryData" resultType="com.wdcloud.lms.core.base.vo.GradedSummeryDataVo">
+        SELECT DISTINCT
+        a.user_id AS userId,
+        b.score AS pointsPossible,
+        ROUND(AVG(b.grade_score), 2) averageScore,
+        MAX(b.grade_score) highScore,
+        MIN(b.grade_score) lowScore,
+        COUNT(*) totalStu
+        FROM
+        cos_user_submit_record a
+        LEFT JOIN cos_grade b ON a.course_id = b.course_id
+        AND a.origin_id = b.origin_id
+        AND a.origin_type = b.origin_type
+        WHERE
+        a.origin_type = #{originType}
+        AND a.course_id = #{courseId}
+        AND a.origin_id = #{originId}
+        <choose>
+            <when test="studyGroupId!=null and studyGroupId!=''">
+                AND a.study_group_id = #{studyGroupId}
+                AND b.user_id IN (
+                SELECT
+                user_id
+                FROM
+                cos_study_group_user
+                WHERE
+                study_group_id =  #{studyGroupId}
+                )
+            </when>
+            <otherwise>
+                <if test="userId!=null and userId!=''">
+                    AND a.user_id = #{userId}
+                </if>
+            </otherwise>
+        </choose>
+        <if test="isGraded!=null and isGraded!=''">
+            AND a.is_graded = #{isGraded}
+        </if>
+
+        GROUP BY
+        a.user_id,b.score
+        LIMIT 1
+    </select>
+    <resultMap id="gradeTestQueryMap" type="com.wdcloud.lms.core.base.vo.GradeTaskVO">
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="assignment_group_id" jdbcType="BIGINT" property="assignmentGroupId" />
+        <result column="title" jdbcType="VARCHAR" property="title" />
+        <result column="score" jdbcType="INTEGER" property="score" />
+        <result column="status" jdbcType="INTEGER" property="status" />
+        <result column="origin_type" jdbcType="INTEGER" property="originType" />
+        <result column="origin_id" jdbcType="BIGINT" property="originId" />
+        <result column="showScoreType" jdbcType="INTEGER" property="showScoreType" />
+        <collection columnPrefix="fplb_" property="fplb" ofType="com.wdcloud.lms.core.base.model.Assign">
+            <id column="id" jdbcType="BIGINT" property="id" />
+            <result column="course_id" jdbcType="BIGINT" property="courseId" />
+            <result column="origin_type" jdbcType="INTEGER" property="originType" />
+            <result column="origin_id" jdbcType="BIGINT" property="originId" />
+            <result column="assign_type" jdbcType="INTEGER" property="assignType" />
+            <result column="assign_id" jdbcType="BIGINT" property="assignId" />
+            <result column="limit_time" jdbcType="TIMESTAMP" property="limitTime" />
+            <result column="start_time" jdbcType="TIMESTAMP" property="startTime" />
+            <result column="end_time" jdbcType="TIMESTAMP" property="endTime" />
+        </collection>
+    </resultMap>
+    <select id="gradeTestQuery" parameterType="java.lang.String" resultMap="gradeTestQueryMap">
+        SELECT
+        DISTINCT cagi.id,
+        cagi.`status`,
+        cagi.origin_id,
+        cagi.origin_type,
+        cagi.title,
+        cagi.score,
+        ifnull(cat.show_score_type,2) showScoreType,
+        ca.id fplb_id,
+        ca.course_id fplb_course_id,
+        ca.origin_type fplb_origin_type,
+        ca.origin_id fplb_origin_id,
+        ca.assign_type fplb_assign_type,
+        ca.assign_id fplb_assign_id,
+        ca.limit_time fplb_limit_time,
+        ca.start_time fplb_start_time,
+        ca.end_time fplb_end_time
+        FROM
+        cos_assignment_group_item cagi
+         JOIN cos_assign_user cau ON cau.origin_id = cagi.origin_id AND cau.origin_type = cagi.origin_type
+         left join cos_assignment cat on cat.id=cau.origin_id and cau.origin_type=1
+         JOIN cos_assign ca ON ca.origin_id = cagi.origin_id AND ca.origin_type = cagi.origin_type
+        WHERE cagi. STATUS = 1
+          AND ( cau.start_time &lt; now() OR cau.start_time IS NULL)
+        <if test="originType!=null and originType!=''">
+            AND cagi.origin_type = #{originType}
+        </if>
+        <if test="courseId!=null and courseId!=''">
+            AND cau.course_id = #{courseId}
+        </if>
+    </select>
+
+    <select id="userQuery" resultType="java.util.Map">
+      SELECT
+        su.id, su.full_name AS fullName,su.email,su.avatar_file_id as fileUrl
+        FROM
+        cos_section_user csu
+        JOIN sys_user su ON csu.user_id = su.id
+        WHERE csu.registry_status = 2  and  csu.role_id = ${@com.wdcloud.lms.core.base.enums.RoleEnum@STUDENT.getType()}
+        AND csu.section_id = #{sectionId} AND csu.course_id = #{courseId} ORDER BY su.full_name
+    </select>
+    <resultMap id="gradeTestListQueryMap" type="com.wdcloud.lms.core.base.vo.GradeTestListQueryVo">
+        <result property="id" column="id"></result>
+        <result property="title" column="title"></result>
+        <result property="originId" column="originId"></result>
+        <result property="originType" column="originType"></result>
+        <result property="score" column="score"></result>
+        <result property="assignmentGroupId" column="assignmentGroupId"></result>
+        <result property="name" column="name"></result>
+        <result property="weight" column="weight"></result>
+        <result property="isIncludeGrade" column="isIncludeGrade"></result>
+        <result property="showScoreType" column="showScoreType"></result>
+        <collection property="assignsList" columnPrefix="assignsList_" ofType="com.wdcloud.lms.core.base.model.Assign">
+            <id column="id" property="id" jdbcType="BIGINT" />
+            <result column="course_id" property="courseId" jdbcType="BIGINT" />
+            <result column="origin_type" property="originType" jdbcType="INTEGER" />
+            <result column="origin_id" property="originId" jdbcType="BIGINT" />
+            <result column="assign_type" property="assignType" jdbcType="INTEGER" />
+            <result column="assign_id" property="assignId" jdbcType="BIGINT" />
+            <result column="limit_time" property="limitTime" jdbcType="TIMESTAMP" />
+            <result column="start_time" property="startTime" jdbcType="TIMESTAMP" />
+            <result column="end_time" property="endTime" jdbcType="TIMESTAMP" />
+            <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+            <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+            <result column="create_user_id" property="createUserId" jdbcType="BIGINT" />
+            <result column="update_user_id" property="updateUserId" jdbcType="BIGINT" />
+        </collection>
+    </resultMap>
+
+    <select id="gradeTestListQuery" resultMap="gradeTestListQueryMap">
+       SELECT
+        DISTINCT cagi.id,
+               cagi.title,
+               cagi.origin_id as originId,
+               cagi.origin_type AS originType,
+               cagi.score,
+               cagi.assignment_group_id AS assignmentGroupId,
+               cag.`name`,
+               ifnull(cag.weight,100) weight,
+               cat.is_include_grade AS isIncludeGrade,
+               ifnull(cat.show_score_type,2) AS showScoreType,
+               ca.id assignsList_id,
+               ca.course_id assignsList_course_id,
+               ca.origin_type assignsList_origin_type,
+               ca.origin_id assignsList_origin_id,
+               ca.assign_type assignsList_assign_type,
+               ca.assign_id assignsList_assign_id,
+               ca.limit_time assignsList_limit_time,
+               ca.start_time assignsList_start_time,
+               ca.end_time assignsList_end_time,
+               ca.create_time assignsList_create_time,
+               ca.update_time assignsList_update_time,
+               ca.create_user_id assignsList_create_user_id,
+               ca.update_user_id assignsList_update_user_id
+        FROM
+            cos_assignment_group_item cagi
+        LEFT JOIN cos_assign_user cau ON cagi.origin_id = cau.origin_id AND cagi.origin_type = cau.origin_type
+        LEFT JOIN cos_assignment_group cag on cag.id=cagi.assignment_group_id
+        LEFT JOIN cos_assignment cat ON cat.id=cagi.origin_id and cagi.origin_type=1
+        left join cos_assign ca on ca.origin_type=cagi.origin_type and ca.origin_id= cagi.origin_id
+       where cagi.status=#{status} and cau.course_id=#{courseId}
+         and cau.user_id in (SELECT csu.user_id FROM cos_section_user csu
+                         WHERE
+                         csu.registry_status = '2'  AND csu.section_id =#{sectionId} and cau.course_id=#{courseId})
+    </select>
+
+    <select id="taskToTheEnd" resultType="java.util.Map">
+          SELECT
+            cagi.title,cg.grade_score/cg.score as proportionScore,cg.grade_score AS gradeScore,cg.score,
+            cg.origin_id as originId,cg.origin_type as originType
+            FROM
+            cos_grade cg
+            LEFT JOIN cos_assignment_group_item cagi on cagi.origin_id=cg.origin_id AND cagi.origin_type=cg.origin_type
+            WHERE
+            cg.user_id = #{userId} and cg.course_id=#{courseId} ORDER BY proportionScore DESC LIMIT 0,10
+    </select>
+    <select id="taskLowToHigh" resultType="java.util.Map">
+          SELECT
+            cagi.title,cg.grade_score/cg.score as proportionScore,cg.grade_score AS gradeScore,cg.score,
+            cg.origin_id as originId,cg.origin_type as originType
+            FROM
+            cos_grade cg
+            LEFT JOIN cos_assignment_group_item cagi on cagi.origin_id=cg.origin_id AND cagi.origin_type=cg.origin_type
+            WHERE
+            cg.user_id = #{userId} and cg.course_id=#{courseId} ORDER BY proportionScore  LIMIT 0,10
+    </select>
+    <select id="isgGroupAssignment" resultType="java.lang.String">
+     SELECT
+         CASE WHEN  ca.study_group_set_id is NULL  THEN  'individual'
+              WHEN  ca.study_group_set_id is NOT NULL  THEN   'group' END as isGroup
+        FROM
+            cos_assignment_group_item cagi
+         LEFT JOIN cos_assignment ca ON  cagi.origin_id=ca.id AND cagi.origin_type=1
+        WHERE
+            cagi.origin_id = #{originId} AND cagi.origin_type = #{originType}
+    </select>
+
+    <select id="isGroupDiscussion" resultType="java.lang.String">
+      SELECT
+         CASE  WHEN cd.type=1 and cd.study_group_set_id is NULL THEN 'individual'
+               WHEN cd.type=1 and cd.study_group_set_id is NOT NULL THEN 'group' END as isGroup
+        FROM
+            cos_assignment_group_item cagi
+         LEFT JOIN cos_discussion cd ON cagi.origin_id= cd.id and cagi.origin_type=2
+        WHERE
+            cagi.origin_id = #{originId} AND cagi.origin_type = #{originType}
+    </select>
+
+    <select id="getCosGradeInfo" resultType="com.wdcloud.lms.core.base.vo.CosGradeVo">
+        SELECT
+        cg.grade_score AS gradeScore,
+        cg.score,
+        cg.user_id AS userId,
+        cg.grader_id AS graderId
+        FROM cos_study_group_user cagu
+        LEFT JOIN cos_grade cg ON cg.course_id=cagu.course_id AND cg.user_id=cagu.user_id
+        WHERE cagu.user_id=#{userId}
+        AND cagu.course_id=#{courseId}
+        <if test="studyGroupId!=null and studyGroupId!=''">
+            AND cagu.study_group_id=#{studyGroupId}
+        </if>
+        AND cg.origin_id=#{originId}
+        AND cg.origin_type=#{originType}
+        LIMIT 1
+    </select>
+
+
+    <select id="getGradeCommentList" resultType="com.wdcloud.lms.core.base.vo.GradeCommentListVo">
+        SELECT
+        a.id AS id,
+        a.assignment_group_item_id AS assignmentGroupItemId,
+        a.origin_id AS originId,
+        a.origin_type AS originType,
+        a.content AS  content,
+        a.study_group_id AS studyGroupId,
+        a.create_time AS createTime,
+        a.user_id AS userId,
+        b.username AS userName,
+        b.nickname AS nickname,
+        b.full_name AS fullName,
+        b.avatar_file_id AS userFile
+        FROM
+        cos_grade_comment a
+        LEFT JOIN sys_user b ON a.create_user_id = b.id
+        WHERE
+        a.is_deleted = 0
+        <if test="userId!=null and userId!=''">
+            AND a.user_id = #{userId}
+        </if>
+        <if test="originType!=null and originType!=''">
+            AND a.origin_type = #{originType}
+        </if>
+        <if test="originId!=null and originId!=''">
+            AND a.origin_id = #{originId}
+        </if>
+        ORDER BY
+        a.create_time ASC
+    </select>
+
+
+    <select id="sectionGrade" resultType="java.util.Map">
+        SELECT
+            cg.course_id AS courseId,cg.score,cg.grade_score as gradeScore,
+            cg.user_id AS userId, cg.grade_score / cg.score AS percent,ca.is_include_grade as isIncludeGrade
+        FROM
+            cos_grade cg
+       LEFT JOIN cos_assignment ca ON cg.origin_type=${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@ASSIGNMENT.getType()}
+      and ca.id=cg.origin_id
+        WHERE  cg.course_id=#{courseId} AND
+            user_id IN (
+                SELECT
+                    csu.user_id
+                FROM
+                    cos_section_user csu
+                WHERE
+                    csu.section_id = #{sectionId}
+                AND csu.course_id = #{courseId}
+                AND csu.registry_status = 2
+            ) ORDER BY percent DESC
+    </select>
+
+    <select id="getMyGradeBookList" resultType="com.wdcloud.lms.core.base.vo.MyGradeBookListVo">
+       SELECT
+            a.id,
+            a.origin_id AS originId,
+            a.origin_type AS originType,
+            a.title AS title,
+            b.limit_time  dueTime,
+            b.user_id  userId,
+            1 includeGrade,
+            2  showScoreType,
+            ifnull(d.weight,100)  weight,
+            CASE
+                 WHEN e.is_overdue = 0 THEN 'On Time'
+                 WHEN e.is_overdue = 1 THEN 'Late'
+                 WHEN e.id IS NULL AND b.end_time &lt; now() THEN 'Missing'
+                 ELSE 'UnSubmit'
+            END AS submissionStatus,
+            IFNULL(ROUND(c.grade_score / 100, 2),0) gradeScore,
+            IFNULL(ROUND(c.score / 100, 2),0) gradeScoreFull,
+         IFNULL( ROUND(( c.grade_score / a.score) * 100, 2 ),0) byPercentLetter,
+         e.last_submit_time subTime,
+         d.`name` AS missionGroup,
+        (
+            SELECT
+                COUNT(*)
+            FROM
+                cos_grade_comment g
+            WHERE
+                g.is_deleted = 0
+              AND a.origin_id = g.origin_id
+              AND a.origin_type = g.origin_type
+              AND g.user_id = #{userId}
+              AND g.course_id =  #{courseId}
+        ) gradeCount
+        FROM
+            cos_assignment_group_item a
+        JOIN cos_assign_user b ON a.origin_id = b.origin_id AND a.origin_type = b.origin_type AND b.user_id = #{userId} AND b.course_id = #{courseId}
+        LEFT JOIN cos_grade c ON a.origin_id = c.origin_id AND a.origin_type = c.origin_type AND b.user_id = c.user_id
+        LEFT JOIN cos_assignment_group d ON a.assignment_group_id = d.id
+        LEFT JOIN cos_user_submit_record e ON a.origin_id = e.origin_id AND a.origin_type = e.origin_type AND b.user_id = e.user_id
+       WHERE
+            a.status=1
+    </select>
+    <select id="submitGradeQuery" resultType="java.util.Map">
+        SELECT
+             cau.user_id as userId,cau.origin_id AS originId,
+             cau.origin_type AS originType,cau.end_time AS endTime,
+             cusr.is_overdue AS isOverdue,cusr.is_graded AS isGraded
+        FROM
+            cos_assign_user cau
+        LEFT JOIN cos_user_submit_record cusr ON cau.origin_id = cusr.origin_id
+        AND cau.origin_type = cusr.origin_type
+        AND ( cusr.user_id=cau.user_id or cusr.study_group_id in (
+         SELECT study_group_id FROM cos_study_group_user where course_id=#{courseId} AND user_id=#{userId}))
+        WHERE
+                cau.origin_id = #{originId}
+                AND cau.origin_type = #{originType}
+               and cusr.need_grade=1
+               AND (cusr.user_id=12 or  cusr.study_group_id in (
+         SELECT study_group_id FROM cos_study_group_user where course_id=82 AND user_id=12
+))
+        ORDER BY cusr.create_time LIMIT 1
+    </select>
+
+    <select id="getUserSubmitGradeList" resultType="java.util.Map">
+        SELECT
+        *
+        FROM
+        cos_grade
+        WHERE
+        assignment_group_item_id = #{assignmentGroupItemId}
+        AND origin_type= #{originType}
+        AND origin_id =#{originId}
+    </select>
+
+    <select id="findUserGrade" resultType="java.util.Map">
+    SELECT
+    cg.course_id AS courseId,cg.score,cg.grade_score as gradeScore,cg.user_id AS userId,
+    cg.origin_id AS originId,cg.origin_type AS originType,cagi.title,
+    cg.grade_score / cg.score AS percent,ca.is_include_grade as isIncludeGrade
+    FROM
+    cos_grade cg
+    LEFT JOIN cos_assignment ca ON cg.origin_type=${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@ASSIGNMENT.getType()}
+      and ca.id=cg.origin_id
+    LEFT JOIN cos_assignment_group_item cagi ON cagi.origin_id=cg.origin_id AND cagi.origin_type=cg.origin_type
+    WHERE
+    cg.user_id =#{userId} and cg.course_id = #{courseId} ORDER BY percent
+    </select>
+
+    <select id="getGradeGroupCount" resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            cos_grade
+        WHERE
+            course_id = #{courseId}
+        AND origin_id = #{originId}
+        AND origin_type = #{originType}
+        <if test="studyGroupId!=null and studyGroupId!=''">
+            AND user_id IN (
+            SELECT
+            user_id
+            FROM
+            cos_study_group_user
+            WHERE
+            course_id = #{courseId}
+            AND study_group_id = #{studyGroupId}
+            )
+        </if>
+
+    </select>
+    <select id="userBySection"  resultType="com.wdcloud.lms.core.base.vo.UserByIdVo">
+       SELECT
+            cg.user_id as id ,sum(cg.grade_score)/sum(cg.score) as proportionScore
+        FROM cos_grade cg
+        WHERE
+            cg.user_id in
+            (SELECT csu.user_id FROM cos_section_user csu where csu.section_id=#{sectionId}
+               AND csu.role_id=${@com.wdcloud.lms.core.base.enums.RoleEnum@STUDENT.getType()})
+             and cg.course_id=#{courseId}
+        GROUP BY cg.user_id ORDER BY proportionScore DESC
+    </select>
+    <select id="isgGroupAssignmentBatch" resultType="com.wdcloud.lms.core.base.vo.GradeTestListQueryVo">
+        SELECT
+            ca.id originId,
+            cagi.origin_type originType,
+            ca.study_group_set_id studyGroupSetId,
+            CASE WHEN  ca.study_group_set_id is NULL  THEN  'individual'
+                 WHEN  ca.study_group_set_id is NOT NULL  THEN   'group' END as isGradeAssignment
+        FROM
+            cos_assignment ca
+            JOIN cos_assignment_group_item cagi ON  cagi.origin_id=ca.id AND cagi.origin_type=1
+        WHERE
+            ca.id in
+            <foreach collection="list" item="id" separator="," open="(" close=")">
+                #{id}
+            </foreach>
+    </select>
+
+    <select id="isgGroupDiscussionBatch" resultType="com.wdcloud.lms.core.base.vo.GradeTestListQueryVo">
+        SELECT
+            cd.id originId,
+            cagi.origin_type originType,
+            cd.study_group_set_id studyGroupSetId,
+        CASE  WHEN cd.type=1 and cd.study_group_set_id is NULL THEN 'individual'
+                  WHEN cd.type=1 and cd.study_group_set_id is NOT NULL THEN 'group' END as isGradeAssignment
+        FROM
+            cos_discussion cd
+            JOIN  cos_assignment_group_item cagi ON cagi.origin_id= cd.id and cagi.origin_type=2
+        WHERE
+          cd.id in
+        <foreach collection="list" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </select>
+    <select id="taskAvgBatch" resultType="com.wdcloud.lms.core.base.vo.TaskAvgVO">
+        SELECT
+            origin_type originType,
+            origin_id originId,
+            ROUND(AVG(grade_score)) taskAvg
+        FROM
+            cos_grade
+        where
+         origin_id in <foreach collection="originIdList" open="(" close=")" separator="," item="id">#{id}</foreach>
+         <if test="originType!=null and originType!=''">
+             and origin_type=#{originType}
+         </if>
+        group by origin_id,origin_type
+    </select>
+
+    <select id="getGradeList" resultType="Integer">
+        SELECT
+            COUNT(*) gradeCount
+        FROM
+            cos_grade
+        WHERE
+            course_id = #{courseId}
+        AND origin_id = #{originId}
+        AND origin_type = #{originType}
+        AND is_graded !=0
+    </select>
+    <select id="getCommentTotalBatch" resultType="com.wdcloud.lms.core.base.vo.CommentTotalVO">
+        SELECT origin_type originType,
+               origin_id originId,
+               count(id) commentTotal
+        from cos_grade_comment
+        where is_deleted=0 and origin_type in (1,2,3)
+        and  origin_id in <foreach collection="originIdList" open="(" close=")" separator="," item="id">#{id}</foreach>
+        GROUP BY origin_type,origin_id
+    </select>
+
+    <insert id="batchInsert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO cos_grade_comment
+        (
+        course_id,
+        assignment_group_item_id,
+        origin_type,
+        origin_id,
+        content,
+        user_id,
+        study_group_id,
+        attachment_file_id,
+        is_send_group_user,
+        is_deleted,
+        create_user_id,
+        update_user_id
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.courseId,jdbcType=BIGINT},
+            #{item.assignmentGroupItemId,jdbcType=BIGINT},
+            #{item.originType,jdbcType=INTEGER},
+            #{item.originId,jdbcType=BIGINT},
+            #{item.content,jdbcType=LONGVARCHAR},
+            #{item.userId,jdbcType=BIGINT},
+            #{item.studyGroupId,jdbcType=BIGINT},
+            #{item.attachmentFileId,jdbcType=BIGINT},
+            #{item.isSendGroupUser,jdbcType=INTEGER},
+            #{item.isDeleted,jdbcType=INTEGER},
+            #{item.createUserId,jdbcType=BIGINT },
+            #{item.updateUserId,jdbcType=BIGINT }
+            )
+        </foreach>
+    </insert>
+</mapper>

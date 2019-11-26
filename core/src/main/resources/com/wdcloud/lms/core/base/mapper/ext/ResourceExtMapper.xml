@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.ResourceExtMapper">
+
+    <resultMap id="resourceVOMap" type="com.wdcloud.lms.core.base.vo.resource.ResourceVO">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="author_id" jdbcType="BIGINT" property="authorId"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="version" jdbcType="TIMESTAMP" property="version"/>
+        <result column="is_remind" jdbcType="INTEGER" property="hasNewNote"/>
+        <result column="origin_type" jdbcType="INTEGER" property="originType"/>
+        <result column="licence" jdbcType="INTEGER" property="licence"/>
+        <result column="is_favorite" jdbcType="INTEGER" property="isFavorite"/>
+        <result column="thumbnail_url" jdbcType="VARCHAR" property="thumbnailUrl"/>
+        <result column="operation" jdbcType="INTEGER" property="operation"/>
+        <result column="full_name" jdbcType="VARCHAR" property="author"/>
+        <result column="org_name" jdbcType="VARCHAR" property="institution"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="share_range" jdbcType="INTEGER" property="shareRange"/>
+        <result column="grade" jdbcType="INTEGER" property="grade"/>
+        <result column="import_count" jdbcType="INTEGER" property="importCount"/>
+        <result column="favorite_count" jdbcType="INTEGER" property="favoriteCount"/>
+        <result column="version_notes" jdbcType="VARCHAR" property="versionNotes"/>
+        <collection property="tags" ofType="string" javaType="list"
+         select="com.wdcloud.lms.core.base.mapper.ext.ResourceTagExtMapper.getTagsByResourceId"  column="id">
+        </collection>
+    </resultMap>
+
+    <select id="getByIdAndImportUserId" resultMap="com.wdcloud.lms.core.base.mapper.ext.ResourceExtMapper.resourceVOMap">
+        select
+        r.id,
+        r.author_id,
+        ru.name,
+        r.origin_type,
+        ru.licence,
+        if(rf.id is null, 0, 1) is_favorite,
+        u.full_name,
+        o.name org_name,
+        ru.description,
+        ru.share_range,
+        if(rvm.is_remind is null, 0, rvm.is_remind) is_remind,
+        rfile.thumbnail_url,
+        ru.grade,
+        ru.import_count,
+        if(t_import.import_count != 0, 2, 1) operation,
+        if(t_favorite.favorite_count is null, 0, t_favorite.favorite_count) favorite_count
+        from res_resource r
+        left join res_resource_update ru on ru.resource_id = r.id
+        left join res_resource_favorite rf on rf.resource_id = r.id and rf.user_id=#{userId}
+        left join res_resource_file rfile on r.id = rfile.resource_id and rfile.type = 1
+        left join res_resource_version_message rvm on r.id = rvm.resource_id and rvm.user_id=#{userId}
+        left join sys_user u on u.id = r.author_id
+        left join sys_org o on o.id = r.org_id
+        left join (select t_ri.user_id, t_ri.resource_id, count(t_ri.id) as import_count
+                   from res_resource_import t_ri
+                            left join res_resource t_r on t_r.id = t_ri.resource_id
+                            left join res_resource_update t_ru on t_ru.resource_id = t_r.id
+                            left join cos_course t_c on t_c.id = t_ri.course_id
+                   where t_ri.user_id = #{userId} and t_ri.resource_id = #{id} and t_ri.version_id != t_ru.version_id
+                         and t_c.is_deleted = 0 and t_c.is_concluded = 0 and t_c.create_user_id = #{userId}) t_import on t_import.resource_id = r.id
+        left join (select resource_id, count(id) as favorite_count
+                   from res_resource_favorite
+                   where resource_id = #{id}) t_favorite on t_favorite.resource_id = r.id
+        where r.id = #{id}
+    </select>
+
+    <select id="getByOriginIdAndOriginType" resultType="com.wdcloud.lms.core.base.vo.resource.ResourceVO">
+        select
+        r.id,
+        ru.name,
+        rv.version
+        from res_resource r
+        left join res_resource_update ru on ru.resource_id = r.id
+        left join res_resource_version rv on rv.id = ru.version_id
+        where r.origin_id = #{originId} and r.origin_type = #{originType}
+        order by rv.version desc, r.id desc
+    </select>
+
+    <select id="getByAuthorIdAndType" resultMap="resourceVOMap">
+         select
+                r.id,
+                ru.share_range,
+                ru.grade,
+                rfile.thumbnail_url,
+                r.origin_type,
+                ru.name,
+                u.full_name,
+                ru.licence,
+                ru.import_count
+        from res_resource r
+        left join res_resource_update ru on ru.resource_id = r.id
+        left join res_resource_file rfile on rfile.resource_id = r.id
+        left join sys_user u on u.id = r.author_id
+        where rfile.type = 1 and r.author_id = #{authorId}
+        <if test="types != null">
+            and r.origin_type in
+            <foreach collection="types" item="type" separator="," open="(" close=")">
+                #{type}
+            </foreach>
+        </if>
+        order by ru.update_time desc, r.id desc
+    </select>
+
+    <select id="getByShareRangeAndCondition" resultMap="com.wdcloud.lms.core.base.mapper.ext.ResourceExtMapper.resourceVOMap">
+       select
+            r.id,
+            ru.share_range,
+            ru.grade,
+            rfile.thumbnail_url,
+            r.origin_type,
+            ru.name,
+            u.full_name,
+            rv.version,
+            ru.licence,
+            o.name org_name,
+            ru.import_count
+        from res_resource r
+        left join res_resource_update ru on ru.resource_id = r.id
+        left join res_resource_file rfile on rfile.resource_id = r.id
+        left join res_resource_version rv on rv.id = ru.version_id
+        left join sys_user u on u.id = r.author_id
+        left join sys_org o on o.id = r.org_id
+        where rfile.type = 1 and (ru.share_range = 3 or (ru.share_range = 2 and o.tree_id like concat(#{rootOrgTreeId},'%') )
+           or (ru.share_range = 1 and r.author_id = #{authorId}))
+        <if test="grade != null"> <![CDATA[ and ( #{grade} & ru.grade or ru.grade is null) ]]></if>
+        <if test="types != null">
+            and r.origin_type in
+            <foreach collection="types" item="type" separator="," open="(" close=")">
+                #{type}
+            </foreach>
+        </if>
+        <if test="name != null">
+            and ru.name like concat('%',#{name},'%')
+        </if>
+        order by
+        <if test="updateTime != null"> ru.update_time desc, </if>
+        <if test="importCount != null"> ru.import_count desc, </if>
+        r.id desc
+    </select>
+
+    <select id="getByAdminRoleAndCondition" resultMap="com.wdcloud.lms.core.base.mapper.ext.ResourceExtMapper.resourceVOMap">
+        select
+        r.id,
+        ru.share_range,
+        ru.grade,
+        rfile.thumbnail_url,
+        r.origin_type,
+        ru.name,
+        u.full_name,
+        ru.licence,
+        o.name org_name,
+        ru.import_count
+        from res_resource r
+        left join res_resource_update ru on ru.resource_id = r.id
+        left join res_resource_file rfile on rfile.resource_id = r.id
+        left join sys_user u on u.id = r.author_id
+        left join sys_org o on o.id = r.org_id
+        where rfile.type = 1 and ((ru.share_range = 3 or ru.share_range = 2) and o.tree_id like concat(#{rootOrgTreeId},'%'))
+        <if test="types != null">
+            and r.origin_type in
+            <foreach collection="types" item="type" separator="," open="(" close=")">
+                #{type}
+            </foreach>
+        </if>
+        <if test="name != null">
+            and ru.name like concat('%',#{name},'%')
+        </if>
+        order by
+        <if test="updateTime != null"> ru.update_time desc, </if>
+        <if test="importCount != null"> ru.import_count desc, </if>
+        r.id desc
+    </select>
+
+
+</mapper>

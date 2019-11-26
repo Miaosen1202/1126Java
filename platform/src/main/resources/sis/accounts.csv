@@ -1,0 +1,7 @@
+account_id,parent_account_id,name,status
+SS_00010001,,SUB_ACC_01,active
+SS_00010002,,SUB_ACC_02,active
+SS_00010003,,SUB_ACC_03,deleted
+,,SUB_ACC_05,active
+SS_000100010001,SS_00010001,SUB_ACC_01_01,active
+SS_00010004,SS_1111,SUB_ERR_parent,active

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.ContentViewRecordExtMapper">
+    <insert id="batchInsert">
+        insert into cos_content_view_record (user_id, origin_type,
+                                             origin_id,create_user_id, update_user_id)
+        values
+               <foreach collection="list" item="item" separator=",">
+                   (#{item.userId,jdbcType=BIGINT}, #{item.originType,jdbcType=INTEGER},
+                   #{item.originId,jdbcType=BIGINT},#{item.createUserId,jdbcType=BIGINT}, #{item.updateUserId,jdbcType=BIGINT})
+               </foreach>
+    </insert>
+    <select id="findUnreadDiscussionReplyList" resultType="java.lang.Long">
+        select t1.id
+        from cos_discussion_reply t1
+        left join cos_content_view_record t2 on t2.origin_type=2 and t2.user_id=#{userId} and t2.origin_id=t1.id
+        where
+        t1.discussion_id=#{originId}
+        and t1.is_deleted=0
+          <if test="studyGroupId!=null and studyGroupId!=''">
+              and t1.study_group_id=#{studyGroupId}
+          </if>
+        and t2.id is null
+    </select>
+    <select id="findUnreadAnnounceReplyList" resultType="java.lang.Long">
+        select t1.id
+        from cos_announce_reply t1
+        left join cos_content_view_record t2 on t2.origin_type=4 and t2.user_id=#{userId} and t2.origin_id=t1.id
+        where
+        t1.announce_id=#{originId}
+        and t1.is_deleted=0
+        <if test="studyGroupId!=null and studyGroupId!=''">
+            and t1.study_group_id=#{studyGroupId}
+        </if>
+        and t2.id is null
+    </select>
+    <select id="findAnnounceReplyUnreadTotal" resultType="com.wdcloud.lms.core.base.vo.ReadCountDTO">
+        select
+          t1.announce_id originId,
+          count(t1.id) replyTotal,
+          count(t2.id) replyReadTotal,
+          count(t1.id)-count(t2.id) replyNotReadTotal
+         from   cos_announce_reply t1
+         left join   cos_content_view_record t2 on t2.origin_type=4 and t2.origin_id=t1.id and t2.user_id=#{userId}
+        where t1.announce_id in
+        <foreach collection="ids" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+        and t1.is_deleted=0
+        <if test="studyGroupId !=null and studyGroupId!=''">
+            and t1.study_group_id=#{studyGroupId}
+        </if>
+          group by t1.announce_id
+    </select>
+    <select id="findDiscussionReplyUnreadTotal" resultType="com.wdcloud.lms.core.base.vo.ReadCountDTO">
+        select
+        t1.discussion_id originId,
+        count(t1.id) replyTotal,
+        count(t2.id) replyReadTotal,
+        count(t1.id)-count(t2.id) replyNotReadTotal
+        from   cos_discussion_reply t1
+        left join   cos_content_view_record t2 on t2.origin_type=2 and t2.origin_id=t1.id and t2.user_id=#{userId}
+        where t1.discussion_id in
+        <foreach collection="ids" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+        and t1.is_deleted=0
+        <if test="studyGroupId !=null and studyGroupId!=''">
+            and t1.study_group_id=#{studyGroupId}
+        </if>
+        group by t1.discussion_id
+    </select>
+</mapper>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.GradeSchemeItemMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.GradeSchemeItem">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="grade_scheme_id" jdbcType="BIGINT" property="gradeSchemeId" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="range_start" jdbcType="DECIMAL" property="rangeStart" />
+    <result column="range_end" jdbcType="DECIMAL" property="rangeEnd" />
+  </resultMap>
+</mapper>

@@ -1,0 +1,56 @@
+excludePathPatterns: /login,/logout,/user/signUp/edit,/org2/select/query,/sis/templateDownload/direct,/course/enroll/edit,/course/enrollmentInfo/query,/getUserInfo,/rootOrg/init,/ePortfolio/get,/ePortfolioColumn/get,/ePortfolioPageContent/get,/getLanguage
+logging:
+    config: classpath:logback-spring.xml
+permission:
+    app:
+        code: lms
+server:
+    port: 8080
+    tomcat:
+        uri-encoding: UTF-8
+    servlet:
+        session:
+            timeout: 7200
+spring:
+    application:
+        name: wd-lms-server
+    http:
+        encoding:
+            charset: UTF-8
+            enabled: true
+            force: true
+    messages:
+        encoding: UTF-8
+    profiles:
+        active: ${env}
+    rabbitmq:
+        connection-timeout: 0
+        event-msg-process-num: 4
+        prefetch-size: 1
+        virtual-host: /
+    redis:
+        database: 0
+    servlet:
+        multipart:
+            max-file-size: 400MB
+            max-request-size: 400MB
+sys-dictionary:
+    course-nav: course.nav
+    language: language
+user-file:
+    default-name:
+        my-file-dir: My Files
+        profile-dir: profile pictures
+        profile-picture: picture
+        submission-dir: Submissions
+        unfiled-dir: unfiled
+    embed-content-suffixes: jpg,jpeg,png,bmp
+validate:
+    enabled: true
+
+#pagehelper
+pagehelper:
+    helperDialect: mysql
+    reasonable: true
+    supportMethodsArguments: true
+    params: count=countSql

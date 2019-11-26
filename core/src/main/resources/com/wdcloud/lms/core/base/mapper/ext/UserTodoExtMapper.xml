@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.UserTodoExtMapper">
+    <resultMap id="findListMap" type="com.wdcloud.lms.core.base.vo.UserTodoVo" extends="com.wdcloud.lms.core.base.mapper.UserTodoMapper.BaseResultMap">
+        <result column="userName" property="userName"></result>
+        <result column="courseName" property="courseName"></result>
+    </resultMap>
+
+    <select id="findList" resultMap="findListMap">
+        select
+           t1.*,
+        <if test="calendarType=='1'.toString()">t2.full_name userName</if>
+        <if test="calendarType=='2'.toString()">t2.name courseName</if>
+        from sys_user_todo t1
+        <if test="calendarType=='1'.toString()">left join sys_user t2 on t2.id=t1.user_id</if>
+        <if test="calendarType=='2'.toString()">left join cos_course t2 on t2.id=t1.course_id</if>
+        where
+        t1.calendar_type=#{calendarType}
+        <choose>
+            <when test="startDate!=null and startDate!='' and endDate!=null and endDate!=''">
+                and t1.do_time &gt;= from_unixtime(#{startDate})
+                and t1.do_time &lt;= from_unixtime(#{endDate})
+            </when>
+            <otherwise>
+                and t1.do_time is null
+            </otherwise>
+        </choose>
+        <if test="calendarType=='1'.toString()">and t1.user_id=#{userId}</if>
+        <if test="calendarType=='2'.toString()">and t1.course_id in (${courseIds})</if>
+        order by t1.do_time
+    </select>
+    <select id="findToBeScoredListByCourseIds" resultType="com.wdcloud.lms.core.base.vo.TodoVo">
+    select
+        1 dataType,
+        t1.course_id courseId,
+        t2.name courseName,
+        t1.origin_type originType,
+        t1.origin_id originId,
+        count(t1.id) toBeScoredTotal,
+        case
+            when t1.origin_type=1 then t3.title
+            when t1.origin_type=2 then t4.title
+            when t1.origin_type=3  then t5.title
+        end title,
+        case
+            when t1.origin_type=1 then t3.score
+            when t1.origin_type=2 then t4.score
+            when t1.origin_type=3  then t5.score
+        end score
+        from
+    cos_user_submit_record t1
+    join cos_course t2 on t2.id=t1.course_id and t2.is_deleted=0
+    left join cos_assignment t3 on t3.id=t1.origin_id
+    left join cos_discussion t4 on t4.id=t1.origin_id
+    left join cos_quiz t5 on t5.id=t1.origin_id
+    where  t1.need_grade=1 and t1.is_graded=0
+    and t1.course_id in <foreach collection="courseIds" open="(" close=")" separator="," item="id">#{id}</foreach>
+    group by t1.course_id,t1.origin_id,t1.origin_type
+    order by count(t1.id) desc
+    </select>
+    <select id="findUserTodoListByUserId" resultType="com.wdcloud.lms.core.base.vo.TodoVo">
+        select
+           2 dataType,
+           t1.user_id userId,
+           t1.calendar_type calendarType,
+           t1.do_time doTime,
+           t1.title,
+           t1.course_id courseId,
+           t2.name courseName,
+           t3.full_name userName
+        from
+          sys_user_todo t1
+          left join cos_course t2 on t2.id=t1.course_id and t2.is_deleted=0 and t1.calendar_type=2
+          left join sys_user t3 on t3.id=t1.user_id
+        where t1.user_id=#{userId}
+          and t1.do_time &gt; #{startTime}
+          <if test="courseId!=null">
+              and t1.course_id=#{courseId}
+              and t1.calendar_type=2
+          </if>
+          <if test="endTime!=null">
+              and t1.do_time &lt; #{endTime}
+          </if>
+        order by t1.do_time
+    </select>
+    <resultMap id="queryAssignListResultMap" type="com.wdcloud.lms.core.base.model.Assign" extends="com.wdcloud.lms.core.base.mapper.AssignMapper.BaseResultMap">
+    </resultMap>
+    <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.vo.TodoVo">
+        <result column="dataType" jdbcType="INTEGER" property="dataType" />
+        <result column="originId" jdbcType="INTEGER" property="originId" />
+        <result column="originType" jdbcType="INTEGER" property="originType" />
+        <result column="title" jdbcType="VARCHAR" property="title" />
+        <result column="score" jdbcType="INTEGER" property="score" />
+        <result column="courseId" jdbcType="INTEGER" property="courseId" />
+        <result column="courseName" jdbcType="INTEGER" property="courseName" />
+        <result column="doTime" jdbcType="TIMESTAMP" property="doTime" />
+        <result column="startTime" jdbcType="TIMESTAMP" property="startTime" />
+        <result column="limitTime" jdbcType="TIMESTAMP" property="limitTime" />
+        <result column="endTime" jdbcType="TIMESTAMP" property="endTime" />
+        <association property="assign" columnPrefix="ass_"  resultMap="queryAssignListResultMap"></association>
+    </resultMap>
+    <select id="findToBeSubmitAssignmentByCourseId" resultMap="BaseResultMap">
+        select
+        3 dataType,
+        t1.id originId,
+        1 originType,
+        t1.title,
+        t1.score,
+        t1.course_id courseId,
+        t4.name courseName,
+        t3.limit_time doTime,
+        t3.start_time startTime,
+        t3.limit_time limitTime,
+        t3.end_time endTime
+        from
+        cos_assignment t1
+          join cos_course t4 on t4.id=t1.course_id
+        join cos_assign_user t3 on t3.user_id=#{userId} and t3.origin_type=1 and t3.origin_id=t1.id
+                                     and (t3.start_time &lt;now() or t3.start_time is null)
+                                     and (t3.end_time &gt;now() or t3.end_time is null)
+        left join  cos_user_submit_record t2 on t2.origin_type=1 and t2.origin_id=t1.id and t2.user_id=#{userId}
+        where t1.course_id in <foreach collection="courseIds"  item="courseId" open="(" close=")" separator=",">#{courseId}</foreach>
+        and t1.status=1
+        and t2.id is null
+    </select>
+    <select id="findToBeSubmitDiscussionByCourseId" resultMap="BaseResultMap">
+        select
+            3 dataType,
+            t1.id originId,
+            2 originType,
+            t1.title,
+            t1.score,
+            t1.course_id courseId,
+            t4.name courseName,
+            t3.limit_time doTime,
+            t3.start_time startTime,
+            t3.limit_time limitTime,
+            t3.end_time endTime
+        from
+            cos_discussion t1
+        join cos_course t4 on t4.id=t1.course_id
+                join cos_assign_user t3 on t3.user_id=#{userId} and t3.origin_type=2 and t3.origin_id=t1.id  and t3.start_time &lt;now() and (t3.end_time is null or t3.end_time &gt;now())
+                left join  cos_user_submit_record t2 on t2.origin_type=2 and t2.origin_id=t1.id and t2.user_id=#{userId}
+        where t1.course_id in <foreach collection="courseIds"  item="courseId" open="(" close=")" separator=",">#{courseId}</foreach>
+        and t1.status=1
+          and t2.id is null
+    </select>
+    <select id="findToBeSubmitQuizByCourseId" resultMap="BaseResultMap">
+        select
+            3 dataType,
+            t1.id originId,
+            3 originType,
+            t1.title,
+            t1.score,
+            t1.course_id courseId,
+            t4.name courseName,
+            t3.limit_time doTime,
+            t3.start_time startTime,
+            t3.limit_time limitTime,
+            t3.end_time endTime
+        from
+            cos_quiz t1
+        join cos_course t4 on t4.id=t1.course_id
+            join cos_assign_user t3 on t3.user_id=#{userId} and t3.origin_type=3 and t3.origin_id=t1.id  and t3.start_time &lt;now() and (t3.end_time is null or t3.end_time &gt;now())
+            left join  cos_user_submit_record t2 on t2.origin_type=3 and t2.origin_id=t1.id and t2.user_id=#{userId}
+        where t1.course_id in <foreach collection="courseIds"  item="courseId" open="(" close=")" separator=",">#{courseId}</foreach>
+        and t1.status=1
+          and t2.id is null
+    </select>
+
+    <select id="findToBeSubmitAssignmentCountByCourseId" resultType="com.wdcloud.lms.core.base.vo.GradeTodoVo">
+        select
+        ANY_VALUE(t1.course_id) courseId,
+        count(*) todoNumber,
+        1 originType
+        from
+        cos_assignment t1
+        join cos_assign_user t3 on t3.user_id=#{userId} and t3.origin_type=1 and t3.origin_id=t1.id  and t3.start_time &lt;now() and (t3.end_time is null or t3.end_time &gt;now())
+        left join  cos_user_submit_record t2 on t2.origin_type=1 and t2.origin_id=t1.id and t2.user_id=#{userId}
+        where t1.course_id in <foreach collection="courseIds"  item="courseId" open="(" close=")" separator=",">#{courseId}</foreach>
+        and t1.status=1
+        and t2.id is null
+        GROUP BY t1.course_id
+    </select>
+    <select id="findToBeSubmitDiscussionCountByCourseId" resultType="com.wdcloud.lms.core.base.vo.GradeTodoVo">
+        select
+        ANY_VALUE(t1.course_id) courseId,
+        count(*) todoNumber,
+        2 originType
+        from
+        cos_discussion t1
+        join cos_assign_user t3 on t3.user_id=#{userId} and t3.origin_type=2 and t3.origin_id=t1.id  and t3.start_time &lt;now() and (t3.end_time is null or t3.end_time &gt;now())
+        left join  cos_user_submit_record t2 on t2.origin_type=2 and t2.origin_id=t1.id and t2.user_id=#{userId}
+        where t1.course_id in <foreach collection="courseIds"  item="courseId" open="(" close=")" separator=",">#{courseId}</foreach>
+        and t1.status=1
+        and t2.id is null
+        GROUP BY t1.course_id
+    </select>
+    <select id="findToBeSubmitQuizCountByCourseId" resultType="com.wdcloud.lms.core.base.vo.GradeTodoVo">
+        select
+        ANY_VALUE(t1.course_id) courseId,
+        count(*) todoNumber,
+        3 originType
+        from
+        cos_quiz t1
+        join cos_assign_user t3 on t3.user_id=#{userId} and t3.origin_type=3 and t3.origin_id=t1.id  and t3.start_time &lt;now() and (t3.end_time is null or t3.end_time &gt;now())
+        left join  cos_user_submit_record t2 on t2.origin_type=3 and t2.origin_id=t1.id and t2.user_id=#{userId}
+        where t1.course_id in <foreach collection="courseIds"  item="courseId" open="(" close=")" separator=",">#{courseId}</foreach>
+        and t1.status=1
+        and t2.id is null
+        GROUP BY t1.course_id
+    </select>
+
+
+    <select id="findUpcoimngAssignmentByCourseId" resultMap="BaseResultMap">
+        select
+            3 dataType,
+            t1.id originId,
+            1 originType,
+            t1.title,
+            t1.score,
+            t1.course_id courseId,
+            t4.name courseName,
+            t3.start_time doTime
+        from
+             cos_assignment t1
+        join cos_course t4 on t4.id=t1.course_id
+        join cos_assign_user t3 on t3.user_id=#{userId} and t3.origin_type=1
+             and t3.origin_id=t1.id and t3.start_time &gt;now()
+        where t1.course_id in <foreach collection="courseIds"  item="courseId" open="(" close=")" separator=",">#{courseId}</foreach>
+        and t1.status=1
+    </select>
+    <select id="findUpcoimngDiscussionByCourseId" resultMap="BaseResultMap">
+        select
+            3 dataType,
+            t1.id originId,
+            2 originType,
+            t1.title,
+            t1.score,
+            t1.course_id courseId,
+            t4.name courseName,
+            t3.start_time doTime
+        from
+             cos_discussion t1
+        join cos_course t4 on t4.id=t1.course_id
+        join cos_assign_user t3 on t3.user_id=#{userId} and t3.origin_type=2
+                 and t3.origin_id=t1.id and t3.start_time &gt;now()
+        where t1.course_id in <foreach collection="courseIds"  item="courseId" open="(" close=")" separator=",">#{courseId}</foreach>
+        and t1.status=1
+    </select>
+    <select id="findUpcoimngQuizByCourseId" resultMap="BaseResultMap">
+        select
+            3 dataType,
+            t1.id originId,
+            3 originType,
+            t1.title,
+            t1.score,
+            t1.course_id courseId,
+            t4.name courseName,
+            t3.start_time doTime
+        from
+            cos_quiz t1
+        join cos_course t4 on t4.id=t1.course_id
+        join cos_assign_user t3 on t3.user_id=#{userId} and t3.origin_type=${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@QUIZ.getType()}
+            and t3.origin_id=t1.id and t3.start_time &gt;now()
+        where t1.course_id in <foreach collection="courseIds"  item="courseId" open="(" close=")" separator=",">#{courseId}</foreach>
+        and t1.status=1
+    </select>
+    <select id="findTeacherUpcoimngAssignmentByCourseId" resultMap="BaseResultMap">
+        select
+            1 dataType,
+            t1.id originId,
+            1 originType,
+            t1.title,
+            t1.score,
+            t1.course_id courseId,
+            t4.name courseName,
+            t3.start_time doTime,
+            t3.id ass_id,
+            t3.course_id ass_course_id,
+            t3.origin_type ass_origin_type,
+            t3.origin_id ass_origin_id,
+            t3.assign_type ass_assign_type,
+            t3.assign_id ass_assign_id,
+            t3.limit_time ass_limit_time,
+            t3.start_time ass_start_time,
+            t3.end_time ass_end_time
+        from
+            cos_assignment t1
+        join (
+              SELECT a1.* from cos_assign  a1
+                JOIN
+                  (SELECT
+                               origin_id,
+                               min(start_time) start_time
+                               FROM
+                               cos_assign
+                               WHERE
+                               origin_type = ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@ASSIGNMENT.getType()}
+                               AND  start_time>now()
+                               group by origin_id) a2
+              on a1.origin_id=a2.origin_id and a1.start_time=a2.start_time
+              ) t3 on t3.origin_id=t1.id
+            join cos_course t4 on t4.id=t1.course_id
+        where t1.course_id=#{courseId}
+          and t1.status=1
+    </select>
+    <select id="findTeacherUpcoimngDiscussionByCourseId" resultMap="BaseResultMap">
+        select
+            1 dataType,
+            t1.id originId,
+            2 originType,
+            t1.title,
+            t1.score,
+            t1.course_id courseId,
+            t4.name courseName,
+            t3.start_time doTime,
+            t3.id ass_id,
+            t3.course_id ass_course_id,
+            t3.origin_type ass_origin_type,
+            t3.origin_id ass_origin_id,
+            t3.assign_type ass_assign_type,
+            t3.assign_id ass_assign_id,
+            t3.limit_time ass_limit_time,
+            t3.start_time ass_start_time,
+            t3.end_time ass_end_time
+        from
+            cos_discussion t1
+        join (
+                SELECT a1.* from cos_assign  a1
+                                     JOIN
+                                     (SELECT
+                                          origin_id,
+                                          min(start_time) start_time
+                                      FROM
+                                          cos_assign
+                                      WHERE
+                                              origin_type = ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@DISCUSSION.getType()}
+                                        AND  start_time>now()
+                                      group by origin_id) a2
+                                     on a1.origin_id=a2.origin_id and a1.start_time=a2.start_time
+            ) t3 on t3.origin_id=t1.id
+        join cos_course t4 on t4.id=t1.course_id
+        where t1.course_id=#{courseId}
+          and t1.status=1
+    </select>
+    <select id="findTeacherUpcoimngQuizByCourseId" resultMap="BaseResultMap">
+        select
+            1 dataType,
+            t1.id originId,
+            3 originType,
+            t1.title,
+            t1.score,
+            t1.course_id courseId,
+            t4.name courseName,
+            t3.start_time doTime,
+            t3.id ass_id,
+            t3.course_id ass_course_id,
+            t3.origin_type ass_origin_type,
+            t3.origin_id ass_origin_id,
+            t3.assign_type ass_assign_type,
+            t3.assign_id ass_assign_id,
+            t3.limit_time ass_limit_time,
+            t3.start_time ass_start_time,
+            t3.end_time ass_end_time
+        from
+            cos_quiz t1
+        join
+                (
+                    SELECT a1.* from cos_assign  a1
+                                         JOIN
+                                         (SELECT
+                                              origin_id,
+                                              min(start_time) start_time
+                                          FROM
+                                              cos_assign
+                                          WHERE
+                                                  origin_type = ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@QUIZ.getType()}
+                                            AND  start_time>now()
+                                          group by origin_id) a2
+                                         on a1.origin_id=a2.origin_id and a1.start_time=a2.start_time
+                ) t3 on t3.origin_id=t1.id
+        join cos_course t4 on t4.id=t1.course_id
+        where t1.course_id=#{courseId}
+          and t1.status=1
+    </select>
+    <select id="findToBeScoredAssignmentListByCourseIds" resultType="com.wdcloud.lms.core.base.vo.TodoVo">
+        select
+        1 dataType,
+        t1.course_id courseId,
+        t2.name courseName,
+        t1.origin_type originType,
+        t1.origin_id originId,
+        count(t1.id) toBeScoredTotal,
+        t3.title,
+        t3.score
+        from
+        cos_user_submit_record t1
+        join cos_course t2 on t2.id=t1.course_id and t2.is_deleted=0
+        join cos_assignment t3 on t3.id=t1.origin_id and t1.origin_type=1
+        where  t1.need_grade=1 and t1.is_graded=0
+        and t1.course_id in <foreach collection="courseIds" open="(" close=")" separator="," item="id">#{id}</foreach>
+        group by t1.course_id,t1.origin_id,t1.origin_type
+        order by count(t1.id) desc
+    </select>
+    <select id="findToBeScoredDiscussListByCourseIds" resultType="com.wdcloud.lms.core.base.vo.TodoVo">
+        select
+        1 dataType,
+        t1.course_id courseId,
+        t2.name courseName,
+        t1.origin_type originType,
+        t1.origin_id originId,
+        count(t1.id) toBeScoredTotal,
+        t3.title,
+        t3.score
+        from
+        cos_user_submit_record t1
+        join cos_course t2 on t2.id=t1.course_id and t2.is_deleted=0
+        join cos_discussion t3 on t3.id=t1.origin_id and t1.origin_type=2 and t3.is_deleted=0
+        where  t1.need_grade=1 and t1.is_graded=0
+        and t1.course_id in <foreach collection="courseIds" open="(" close=")" separator="," item="id">#{id}</foreach>
+        group by t1.course_id,t1.origin_id,t1.origin_type
+        order by count(t1.id) desc
+    </select>
+    <select id="findToBeScoredQuizListByCourseIds" resultType="com.wdcloud.lms.core.base.vo.TodoVo">
+        select
+        1 dataType,
+        t1.course_id courseId,
+        t2.name courseName,
+        t1.origin_type originType,
+        t1.origin_id originId,
+        count(t1.id) toBeScoredTotal,
+        t3.title,
+        t3.score
+        from
+        cos_user_submit_record t1
+        join cos_course t2 on t2.id=t1.course_id and t2.is_deleted=0
+        join cos_quiz t3 on t3.id=t1.origin_id and t1.origin_type=3
+        where  t1.need_grade=1 and t1.is_graded=0
+        and t1.course_id in <foreach collection="courseIds" open="(" close=")" separator="," item="id">#{id}</foreach>
+        group by t1.course_id,t1.origin_id,t1.origin_type
+        order by count(t1.id) desc
+    </select>
+
+</mapper>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.QuizMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.Quiz">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="course_id" jdbcType="BIGINT" property="courseId" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="type" jdbcType="INTEGER" property="type" />
+    <result column="assignment_group_id" jdbcType="BIGINT" property="assignmentGroupId" />
+    <result column="score" jdbcType="INTEGER" property="score" />
+    <result column="allow_anonymous" jdbcType="INTEGER" property="allowAnonymous" />
+    <result column="is_shuffle_answer" jdbcType="INTEGER" property="isShuffleAnswer" />
+    <result column="time_limit" jdbcType="INTEGER" property="timeLimit" />
+    <result column="allow_multi_attempt" jdbcType="INTEGER" property="allowMultiAttempt" />
+    <result column="attempt_number" jdbcType="INTEGER" property="attemptNumber" />
+    <result column="score_type" jdbcType="INTEGER" property="scoreType" />
+    <result column="show_reply_strategy" jdbcType="INTEGER" property="showReplyStrategy" />
+    <result column="show_answer_strategy" jdbcType="INTEGER" property="showAnswerStrategy" />
+    <result column="show_answer_start_time" jdbcType="TIMESTAMP" property="showAnswerStartTime" />
+    <result column="show_answer_end_time" jdbcType="TIMESTAMP" property="showAnswerEndTime" />
+    <result column="show_question_strategy" jdbcType="INTEGER" property="showQuestionStrategy" />
+    <result column="is_lock_replied_question" jdbcType="INTEGER" property="isLockRepliedQuestion" />
+    <result column="is_need_access_code" jdbcType="INTEGER" property="isNeedAccessCode" />
+    <result column="access_code" jdbcType="VARCHAR" property="accessCode" />
+    <result column="is_filter_ip" jdbcType="INTEGER" property="isFilterIp" />
+    <result column="filter_ip_address" jdbcType="VARCHAR" property="filterIpAddress" />
+    <result column="version" jdbcType="INTEGER" property="version" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="total_questions" jdbcType="INTEGER" property="totalQuestions" />
+    <result column="total_score" jdbcType="INTEGER" property="totalScore" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+    <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+    <result column="description" jdbcType="LONGVARCHAR" property="description" />
+    <result column="total_questions" jdbcType="BIGINT" property="totalQuestions" />
+    <result column="total_score" jdbcType="BIGINT" property="totalScore" />
+  </resultMap>
+</mapper>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.GenseeUserVodHistoryMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.GenseeUserVodHistory">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="gensee_vodId" jdbcType="VARCHAR" property="genseeVodid" />
+    <result column="gensee_uid" jdbcType="VARCHAR" property="genseeUid" />
+    <result column="gensee_start_time" jdbcType="TIMESTAMP" property="genseeStartTime" />
+    <result column="gensee_leave_time" jdbcType="TIMESTAMP" property="genseeLeaveTime" />
+    <result column="gensee_name" jdbcType="VARCHAR" property="genseeName" />
+    <result column="gensee_duration" jdbcType="INTEGER" property="genseeDuration" />
+    <result column="gensee_ip" jdbcType="VARCHAR" property="genseeIp" />
+    <result column="gensee_area" jdbcType="VARCHAR" property="genseeArea" />
+    <result column="gensee_device" jdbcType="INTEGER" property="genseeDevice" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+    <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+  </resultMap>
+</mapper>

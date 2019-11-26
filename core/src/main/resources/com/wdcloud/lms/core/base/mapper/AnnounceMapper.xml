@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.AnnounceMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.Announce">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="course_id" jdbcType="BIGINT" property="courseId" />
+    <result column="study_group_id" jdbcType="BIGINT" property="studyGroupId" />
+    <result column="topic" jdbcType="VARCHAR" property="topic" />
+    <result column="publish_time" jdbcType="TIMESTAMP" property="publishTime" />
+    <result column="allow_comment" jdbcType="INTEGER" property="allowComment" />
+    <result column="is_comment_before_see_reply" jdbcType="INTEGER" property="isCommentBeforeSeeReply" />
+    <result column="like_strategy" jdbcType="INTEGER" property="likeStrategy" />
+    <result column="is_order_by_like" jdbcType="INTEGER" property="isOrderByLike" />
+    <result column="view_count" jdbcType="INTEGER" property="viewCount" />
+    <result column="attachment_file_id" jdbcType="BIGINT" property="attachmentFileId" />
+    <result column="is_deleted" jdbcType="INTEGER" property="isDeleted" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+    <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+    <result column="content" jdbcType="LONGVARCHAR" property="content" />
+  </resultMap>
+</mapper>

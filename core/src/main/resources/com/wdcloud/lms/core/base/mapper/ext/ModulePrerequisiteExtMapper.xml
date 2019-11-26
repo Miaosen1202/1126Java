@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.ModulePrerequisiteExtMapper">
+    <select id="getModulePrerequisites" resultMap="com.wdcloud.lms.core.base.mapper.ModuleMapper.BaseResultMap">
+        select *
+        from cos_module cm
+                 left join cos_module_prerequisite cmp
+                           on cmp.pre_module_id = cm.id
+        where cmp.module_id = #{moduleId}
+    </select>
+</mapper>

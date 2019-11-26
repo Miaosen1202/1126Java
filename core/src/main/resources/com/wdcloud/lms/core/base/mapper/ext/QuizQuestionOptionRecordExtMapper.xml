@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.QuizQuestionOptionRecordExtMapper">
+    <!-- 批量添加-->
+    <insert id="batchInsert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO cos_quiz_question_option_record
+        (
+        `quiz_question_record_id`,
+        `question_option_id`,
+        `code`,
+        `content`,
+        `explanation`,
+        `is_correct`,
+        `seq`,
+        `is_choice`,
+        `create_user_id`,
+        `update_user_id`)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.quizQuestionRecordId,jdbcType=BIGINT},
+            #{item.questionOptionId,jdbcType=BIGINT},
+            #{item.code,jdbcType=VARCHAR},
+            #{item.content,jdbcType=VARCHAR},
+            #{item.explanation,jdbcType=VARCHAR},
+            #{item.isCorrect,jdbcType=VARCHAR},
+            #{item.seq,jdbcType=INTEGER},
+            #{item.isChoice,jdbcType=INTEGER},
+            #{item.createUserId,jdbcType=BIGINT },
+            #{item.updateUserId,jdbcType=BIGINT})
+        </foreach>
+    </insert>
+
+    <!-- 批量更新 -->
+
+    <update id="batchUpdate" parameterType="java.util.List">
+        update cos_quiz_question_option_record set
+        quiz_question_record_id=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.quizQuestionRecordId,jdbcType=BIGINT}
+        </foreach>
+        ,question_option_id=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.questionOptionId,jdbcType=BIGINT}
+        </foreach>
+        ,code=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.code,jdbcType=VARCHAR}
+        </foreach>
+        ,content=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.content,jdbcType=VARCHAR}
+        </foreach>
+        ,explanation=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.explanation,jdbcType=VARCHAR}
+        </foreach>
+        ,is_correct=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.isCorrect,jdbcType=VARCHAR}
+        </foreach>
+        ,seq=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.seq,jdbcType=INTEGER}
+        </foreach>
+        ,is_choice=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.isChoice,jdbcType=INTEGER}
+        </foreach>
+        ,update_user_id=
+        <foreach collection="list" item="item" index="index" separator=" " open="case ID" close="end">
+            when #{item.id,jdbcType=BIGINT} then #{item.updateUserId,jdbcType=BIGINT}
+        </foreach>
+        where id  in
+        <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+            #{item.id,jdbcType=BIGINT}
+        </foreach>
+
+    </update>
+
+
+    <!-- 批量删除 -->
+    <delete id="batchDelete" parameterType="java.util.List">
+            delete from cos_quiz_question_option_record where id in
+        <foreach collection="list" item="item" index="index"  open="("
+                 separator="," close=")">
+            #{item.id}
+        </foreach>
+    </delete>
+
+
+</mapper>

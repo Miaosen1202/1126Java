@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ResourceAdminOperationLogMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.ResourceAdminOperationLog">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="resource_name" jdbcType="VARCHAR" property="resourceName" />
+    <result column="share_range" jdbcType="INTEGER" property="shareRange" />
+    <result column="author_id" jdbcType="BIGINT" property="authorId" />
+    <result column="is_see" jdbcType="INTEGER" property="isSee" />
+    <result column="operation_type" jdbcType="INTEGER" property="operationType" />
+    <result column="origin_type" jdbcType="INTEGER" property="originType" />
+    <result column="admin_user_name" jdbcType="VARCHAR" property="adminUserName" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+    <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+  </resultMap>
+</mapper>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.SectionUserExtMapper">
+
+
+    <select id="getUserByCourseId" resultType="com.wdcloud.lms.core.base.model.User">
+        select distinct(su.id), username
+        from sys_user su
+                 join cos_section_user csu
+                      on csu.user_id = su.id
+        where csu.registry_status = 2
+          and csu.course_id = #{courseId}
+          <if test="roleId!=null and roleId!=''">
+              and csu.role_id=#{roleId}
+          </if>
+
+    </select>
+
+    <!-- 查询班级里某一课程Id下的所有用户 -->
+    <select id="findUserByCourseId" resultMap="com.wdcloud.lms.core.base.mapper.SectionUserMapper.BaseResultMap">
+        SELECT
+        cu.`id`,
+        cu.`course_id`,
+        cu.`user_id`,
+        cu.`is_favorite`,
+        cu.`cover_color`,
+        cu.`course_alias`,
+        cu.`seq`,
+        cu.`is_active`,
+        cu.`create_time`,
+        cu.`update_time`,
+        cu.`create_user_id`,
+        cu.`update_user_id`
+        FROM cos_course_user as cu
+        <where>
+            cu.is_active=1 and
+            cu.course_id=#{courseId};
+        </where>
+    </select>
+    <select id="findSectionsByThisStudentJoined" resultType="com.wdcloud.lms.core.base.model.Section">
+        select distinct
+               t2.id,
+               t2.name
+        from cos_section_user t1
+          join cos_section t2 on t2.id = t1.section_id
+        where t1.registry_status = 2
+          and t1.course_id = #{courseId}
+          and t1.user_id = #{userId}
+          and t1.role_id = #{roleId}
+    </select>
+
+    <select id="getUserBySectionId" resultType="com.wdcloud.lms.core.base.model.User">
+        SELECT
+            distinct (b.id),b.username
+        FROM
+            cos_section_user a
+                 JOIN sys_user b ON a.user_id = b.id
+        WHERE
+            a.course_id = #{courseId}
+          AND a.section_id in
+              <foreach collection="sectionIds" item="sectionId" separator="," open="(" close=")">
+                  #{sectionId}
+              </foreach>
+          AND a.registry_status = 2
+          AND a.role_id = 4;
+    </select>
+</mapper>

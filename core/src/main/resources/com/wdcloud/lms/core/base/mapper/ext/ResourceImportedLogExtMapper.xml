@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.ResourceImportedLogExtMapper">
+    <select id="getByImportUserId" resultType="com.wdcloud.lms.core.base.vo.resource.ResourceImportLogVO">
+        select
+        ril.id,
+        ril.resource_name resourceName,
+        ril.origin_type category,
+        ril.operation_type importType,
+        ril.course_name courseName,
+        ril.status,
+        ril.create_time createTime
+        from res_resource_imported_log ril
+        where ril.user_id = #{userId}
+        order by ril.create_time desc, ril.id desc
+    </select>
+</mapper>

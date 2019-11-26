@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.StudyGroupUserExtMapper">
+
+    <delete id="clearNoStudentUser">
+        delete gu from cos_study_group_user gu
+        <where>
+            gu.course_id in
+            <foreach collection="courseIds" item="courseId" open="(" close=")" separator=",">
+                #{courseId}
+            </foreach>
+            and
+            gu.user_id not in (
+               select user_id from cos_section_user su where
+                su.course_id = gu.course_id
+                and su.role_id = ${@com.wdcloud.lms.core.base.enums.RoleEnum@STUDENT.getType()}
+            )
+        </where>
+    </delete>
+
+    <update id="clearUserByGroupSets">
+        delete from cos_study_group_user
+        where study_group_set_id in
+        <foreach collection="list" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <select id="getStudyGroupUserNumber" resultType="Integer">
+        SELECT
+          COUNT(*) studentCount
+        FROM
+          cos_study_group_user
+        <where>
+            study_group_set_id = #{studyGroupSetId}
+        </where>
+        <if test="studyGroupId!=null and studyGroupId!=''">
+            AND study_group_id  = #{studyGroupId}
+        </if>
+
+    </select>
+
+    <select id="getOriginStudyGroupUserCount" resultType="Integer">
+        SELECT
+            COUNT(*) originCount
+        FROM
+            sys_user
+        WHERE
+            id IN (
+                SELECT
+                    user_id
+                FROM
+                    cos_study_group_user
+                WHERE
+                    study_group_set_id = #{studyGroupSetId}
+            )
+        OR id IN (
+            SELECT
+                user_id
+            FROM
+                cos_section_user
+            WHERE
+                section_id IN (
+                    SELECT
+                        id
+                    FROM
+                        cos_section
+                    WHERE
+                        course_id = #{courseId}
+                )
+            AND role_id = #{roleId}
+        )
+    </select>
+
+
+    <select id="findGroupMemberNumbers" resultType="com.wdcloud.lms.core.base.vo.StudyGroupMebmberNumberVo">
+        select
+          study_group_id as studyGroupId,
+          count (*) as memberNumber
+        from
+        cos_study_group_user
+        <where>
+            study_group_id in
+            <foreach collection="list" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+        group by study_group_id
+    </select>
+
+    <!-- 查询组里某一课程Id下的所有用户 -->
+    <select id="findUserByCourseId" resultMap="com.wdcloud.lms.core.base.mapper.StudyGroupUserMapper.BaseResultMap">
+        SELECT
+        cgu.`id`,
+        cgu.`course_id`,
+        cgu.`study_group_set_id`,
+        cgu.`study_group_id`,
+        cgu.`user_id`,
+        cgu.`is_leader`,
+        cgu.`cover_color`,
+        cgu.`create_time`,
+        cgu.`update_time`,
+        cgu.`create_user_id`,
+        cgu.`update_user_id`
+        FROM cos_study_group_user` as cgu
+        <where>
+            cgu.course_id=#{courseId};
+        </where>
+    </select>
+</mapper>

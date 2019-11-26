@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.TermExtMapper">
+    <resultMap id="termAndConfigVoMap" type="com.wdcloud.lms.core.base.vo.TermAndConfigVo"
+               extends="com.wdcloud.lms.core.base.mapper.TermMapper.BaseResultMap">
+        <collection property="configs" columnPrefix="config_"
+                    resultMap="com.wdcloud.lms.core.base.mapper.TermConfigMapper.BaseResultMap"/>
+    </resultMap>
+
+    <select id="findTermAndConfigs" resultMap="termAndConfigVoMap">
+        select
+          t.*,
+          tc.id as config_id,
+          tc.term_id as config_term_id,
+          tc.role_id as config_role_id,
+          tc.start_time as config_start_time,
+          tc.end_time as config_end_time
+        from sys_term t left join sys_term_config tc on t.id = tc.term_id
+        <where>
+            t.id in
+            <foreach collection="list" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+    <resultMap id="termListMap" type="com.wdcloud.lms.core.base.vo.TermListVO"
+               extends="com.wdcloud.lms.core.base.mapper.TermMapper.BaseResultMap">
+        <result column="coursesCount" jdbcType="BIGINT" property="coursesCount"/>
+        <collection property="termConfigs" column="id"
+                    ofType="com.wdcloud.lms.core.base.model.TermConfig"
+                    select="termConfigList">
+
+        </collection>
+    </resultMap>
+    <select id="termList" resultMap="termListMap">
+        select st.*,
+               (select count(*) from cos_course where term_id = st.id) as coursesCount
+        from sys_term st
+        where st.org_tree_id = #{rootTreeId}
+        order by is_default desc, create_time desc
+    </select>
+    <!--suppress MybatisMapperXmlInspection -->
+    <select id="termConfigList" resultType="map">
+        select start_time,end_time,role_id from sys_term_config where term_id = #{id}
+    </select>
+
+    <!-- 用户机构及下级机构的学期，并根据学期sisId过滤 -->
+    <select id="findUserOrgTerms" resultMap="com.wdcloud.lms.core.base.mapper.TermMapper.BaseResultMap">
+        select
+          *
+        from sys_term t
+        <where>
+          <if test="sisIds != null and sisIds.size() > 0">
+              and t.sis_id in
+              <foreach collection="sisIds" item="sisId" separator="," open="(" close=")">
+                  #{sisId}
+              </foreach>
+          </if>
+          and t.org_id in (
+                select id
+                from sys_org
+                where tree_id like concat(#{rootOrgTreeId}, "%")
+          )
+        </where>
+    </select>
+</mapper>

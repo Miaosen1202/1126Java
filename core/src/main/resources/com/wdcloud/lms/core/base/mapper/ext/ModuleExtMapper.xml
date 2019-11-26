@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.ModuleExtMapper">
+    <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.vo.ModuleVO"
+               extends="com.wdcloud.lms.core.base.mapper.ModuleMapper.BaseResultMap">
+        <result column="itemsCount" jdbcType="INTEGER" property="itemsCount"/>
+        <result column="completeStatus" jdbcType="INTEGER" property="completeStatus"/>
+    </resultMap>
+
+    <select id="getModuleWithinItemsCount" resultMap="BaseResultMap">
+        select cm.*, (select count(1) from cos_module_item cmi where cmi.module_id = cm.id) as itemsCount
+        from cos_module cm
+        where course_id = #{courseId};
+    </select>
+    <select id="getMaxSeq" resultType="java.lang.Integer">
+        select max(seq)
+        from cos_module
+        where course_id = #{courseId};
+    </select>
+
+    <select id="getModuleByOriginTypeAndOriginId"
+            resultMap="com.wdcloud.lms.core.base.mapper.ModuleMapper.BaseResultMap">
+        select cm.*
+        from cos_module cm
+                 join cos_module_item cmi
+                      on cm.id = cmi.module_id
+        where cmi.origin_type = #{originType}
+          and cmi.origin_id = #{originId}
+    </select>
+    <select id="getModuleCompleteStatusByModuleAndUser"
+            resultMap="BaseResultMap">
+        SELECT
+            m.id id,
+            u. STATUS completeStatus
+        FROM
+            cos_module m
+                LEFT JOIN cos_module_user u ON m.id = u.module_id
+        WHERE
+            u.user_id = #{userId}
+          AND m.course_id = #{courseId};
+    </select>
+</mapper>

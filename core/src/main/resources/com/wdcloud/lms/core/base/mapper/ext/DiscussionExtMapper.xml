@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.DiscussionExtMapper">
+
+    <select id="findCourseDiscussionNumber" resultType="java.util.Map">
+        select
+        course_id as courseId,
+        count(*) as discussionNumber
+        from cos_discussion
+        <where>
+            course_id in
+            <foreach collection="list" item="id" separator="," open="(" close=")">
+                #{id}
+            </foreach>
+        </where>
+        group by course_id
+    </select>
+    <sql id="Base_Column_List" >
+        id, course_id, origin_type, origin_id, assign_type, assign_id, limit_time, start_time,
+        end_time, create_time, update_time, create_user_id, update_user_id
+    </sql>
+    <!--<resultMap id="queryAssignListResultMap" type="com.wdcloud.lms.core.base.model.Assign" extends="com.wdcloud.lms.core.base.mapper.AssignMapper.BaseResultMap">-->
+    <!--</resultMap>-->
+
+    <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.vo.DiscussionListVo" extends="com.wdcloud.lms.core.base.mapper.DiscussionMapper.BaseResultMap">
+        <result column="groupId" jdbcType="BIGINT" property="groupId" />
+        <result column="isRead" jdbcType="INTEGER" property="isRead" />
+        <result column="minStartTime" jdbcType="TIMESTAMP" property="minStartTime" />
+        <result column="maxLimitTime" jdbcType="TIMESTAMP" property="maxLimitTime" />
+        <result column="maxEndTime" jdbcType="TIMESTAMP" property="maxEndTime" />
+        <collection property="assign" columnPrefix="ass_" resultMap="com.wdcloud.lms.core.base.mapper.AssignMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="searchCourseDiscussionByTeacher" resultMap="BaseResultMap">
+        select
+        t1.*,
+        t2.id ass_id,
+        t2.course_id ass_course_id,
+        t2.origin_type ass_origin_type,
+        t2.origin_id ass_origin_id,
+        t2.assign_type ass_assign_type,
+        t2.assign_id ass_assign_id,
+        t2.limit_time ass_limit_time,
+        t2.start_time ass_start_time,
+        t2.end_time ass_end_time,
+        (CASE WHEN t4.origin_id is null THEN 0 ELSE 1 END) isRead
+        from cos_discussion t1
+        left join cos_assign t2 on t2.origin_type=${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@DISCUSSION.getType()} and t2.origin_id=t1.id
+        left join (select  origin_id from cos_content_view_record where origin_type=1 and user_id=#{userId}) t4 on t4.origin_id=t1.id
+        <where>
+          t1.is_deleted=0
+          and t1.type = 1
+          and t1.study_group_id is null
+          AND t1.course_id=#{courseId}
+          <if test="title!=null and title!=''">AND t1.title like concat('%',#{title},'%') </if>
+        </where>
+        ORDER BY t1.is_pin desc,
+                 t1.last_active_time desc,
+                 t1.create_time desc
+    </select>
+    <select id="searchCourseDiscussionByStudent" resultMap="BaseResultMap">
+        select
+        t1.*,
+        t3.start_time minStartTime,
+        t3.limit_time maxLimitTime,
+        t3.end_time maxEndTime,
+        t2.id ass_id,
+        t2.course_id ass_course_id,
+        t2.origin_type ass_origin_type,
+        t2.origin_id ass_origin_id,
+        t2.assign_type ass_assign_type,
+        t2.assign_id ass_assign_id,
+        t2.limit_time ass_limit_time,
+        t2.start_time ass_start_time,
+        t2.end_time ass_end_time,
+        (CASE WHEN t4.origin_id is null THEN 0 ELSE 1 END) isRead,
+        t5.study_group_id groupId
+        from cos_discussion t1
+        join  cos_assign_user t3 on t3.user_id=#{userId} and  t3.origin_id=t1.id and t3.origin_type=${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@DISCUSSION.getType()}
+        join cos_assign t2 on t2.origin_type=${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@DISCUSSION.getType()}
+            and t2.origin_id=t1.id
+        left join (select  origin_id from cos_content_view_record where origin_type=1 and user_id=#{userId}) t4 on t4.origin_id=t1.id
+        left join cos_study_group_user t5 on t5.study_group_set_id=t1.study_group_set_id and t5.user_id=#{userId} and t5.course_id=#{courseId}
+        <where>
+            t1.is_deleted=0
+            AND t1.status=1
+            AND t1.course_id=#{courseId}
+            and t1.study_group_id is null
+            <if test="title!=null and title!=''">AND t1.title like concat('%',#{title},'%') </if>
+        </where>
+        ORDER BY t1.is_pin desc,
+        t1.last_active_time desc,
+        t1.create_time desc
+    </select>
+    <select id="searchGroupDiscussion" resultMap="BaseResultMap">
+        select
+        t1.*,
+        (CASE WHEN t4.origin_id is null THEN 0 ELSE 1 END) isRead
+        from cos_discussion t1
+        left join (select  origin_id from cos_content_view_record where origin_type=1 and user_id=#{userId}) t4 on t4.origin_id=t1.id
+        <where>
+            t1.is_deleted=0
+            <if test="studentRole=='true'.toString()">AND t1.status=1</if>
+            AND t1.course_id=#{courseId}
+            and (t1.study_group_id=#{studyGroupId}
+            <if test="studyGroupSetId!=null and studyGroupSetId!=''"> or t1.study_group_set_id=#{studyGroupSetId}</if>
+             )
+            <if test="title!=null and title!=''">AND t1.title like concat('%',#{title},'%') </if>
+        </where>
+        ORDER BY t1.is_pin desc,
+        t1.last_active_time desc,
+        t1.create_time desc
+    </select>
+
+    <resultMap id="findCalendarDiscussionListMap" type="com.wdcloud.lms.core.base.vo.CalendarDiscussionVo"
+               extends="com.wdcloud.lms.core.base.mapper.DiscussionMapper.BaseResultMap">
+        <result column="assignTableId" property="assignTableId"/>
+        <result column="userName" property="userName"/>
+        <result column="sectionName" property="sectionName"/>
+        <result column="assignType" property="assignType"/>
+        <result column="dueTime" property="dueTime"/>
+        <result column="ownStudyGroupId" property="ownStudyGroupId"/>
+    </resultMap>
+
+    <select id="findCalendarDiscussionList" resultMap="findCalendarDiscussionListMap">
+        select ca1.*,
+               ca2.id assignTableId,
+        ca2.limit_time as dueTime,
+        ca2.assign_type as assignType,
+        cs.name as sectionName,
+        su.full_name as userName
+        from cos_discussion ca1
+        join cos_assign ca2 on ca2.origin_id=ca1.id and ca2.origin_type = ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@DISCUSSION.getType()}
+        left join cos_section cs on cs.id = ca2.assign_id
+        left join sys_user su on su.id = ca2.assign_id
+        where
+        ca1.course_id in <foreach collection="courseIds" item="item" open="(" close=")" separator=",">#{item}</foreach>
+        and ca1.type=1 and ca1.is_grade=1 and ca1.is_deleted=0
+        <choose>
+            <when test="hasDueTime != null">
+                <if test="startDate !=null">
+                    and ca2.limit_time &gt;= from_unixtime(#{startDate})
+                </if>
+                <if test="endDate !=null">
+                    and ca2.limit_time &lt;= from_unixtime(#{endDate})
+                </if>
+            </when>
+            <otherwise>
+                and ca2.limit_time is null
+            </otherwise>
+        </choose>
+    </select>
+    <select id="findCalendarDiscussionListStudent" resultMap="findCalendarDiscussionListMap">
+        select ca1.*,
+        ca2.id assignTableId,
+        ca2.limit_time as dueTime,
+        ca2.assign_type as assignType,
+        cs.name as sectionName,
+        t4.study_group_id ownStudyGroupId
+        from cos_discussion ca1
+        join cos_assign_user cau on cau.user_id=#{userId} and cau.origin_id=ca1.id and cau.origin_type= ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@DISCUSSION.getType()}
+        join cos_assign ca2 on ca1.id = ca2.origin_id and ca2.origin_type = ${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@DISCUSSION.getType()}
+        left join cos_section cs on cs.id = ca2.assign_id
+        left join  cos_study_group_user t4  on t4.study_group_set_id=ca1.study_group_set_id and t4.course_id=ca1.course_id and t4.user_id=#{userId}
+        where
+        ca1.type=1 and ca1.is_grade=1
+        and ca1.is_deleted=0 and ca1.status=1
+        and ca1.course_id in
+        <foreach collection="courseIds" item="courseId" separator="," open="(" close=")">
+            #{courseId}
+        </foreach>
+        <!--and ca2.id in-->
+        <!--<foreach collection="assignIds" item="assignId" separator="," open="(" close=")">-->
+            <!--#{assignId}-->
+        <!--</foreach>-->
+        <choose>
+            <when test="hasDueTime != null">
+                <if test="startDate !=null">
+                    and ca2.limit_time &gt;= from_unixtime(#{startDate})
+                </if>
+                <if test="endDate !=null">
+                    and ca2.limit_time &lt;= from_unixtime(#{endDate})
+                </if>
+            </when>
+            <otherwise>
+                and ca2.limit_time is null
+            </otherwise>
+        </choose>
+    </select>
+
+
+    <select id="findDialogs" resultType="com.wdcloud.lms.core.base.vo.DialogVo">
+        SELECT
+            dr.id,
+            dr.content,
+            dr.attachment_file_id as attachmentFileId,
+            dr.create_user_id as userId,
+            dr.discussion_id as discussionId,
+            dr.discussion_reply_id as discussionReplyId,
+            dr.create_time as createTime,
+            d.title as discussionTitle,
+            u.full_name as username
+        FROM
+            cos_discussion_reply dr
+            left JOIN cos_discussion d ON dr.discussion_id = d.id
+            LEFT JOIN sys_user u ON dr.create_user_id = u.id
+        WHERE
+            d.course_id = #{courseId}
+            and d.is_deleted = ${@com.wdcloud.lms.core.base.enums.Status@NO.getStatus()}
+            and (
+              dr.discussion_reply_id IN (
+                    SELECT id from cos_discussion_reply where create_user_id = #{userId}
+                )
+              or d.create_user_id = #{userId}
+            )
+        order by
+          dr.create_time desc
+    </select>
+</mapper>

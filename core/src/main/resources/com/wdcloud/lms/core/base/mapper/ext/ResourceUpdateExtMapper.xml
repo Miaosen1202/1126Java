@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.ResourceUpdateExtMapper">
+
+    <select id="getEditDataByResourceId" resultMap="com.wdcloud.lms.core.base.mapper.ext.ResourceExtMapper.resourceVOMap">
+        select
+            r.id,
+            ru.name,
+            r.origin_type,
+            ru.licence,
+            ru.description,
+            ru.share_range,
+            rfile.thumbnail_url,
+            ru.grade,
+            rv.description version_notes
+        from res_resource r
+        left join res_resource_update ru on ru.resource_id = r.id
+        left join res_resource_file rfile on r.id = rfile.resource_id
+        left join res_resource_version rv on rv.id = ru.version_id
+        where rfile.type = 1 and ru.resource_id = #{resourceId}
+    </select>
+</mapper>

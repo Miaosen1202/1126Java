@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.GenseeLiveMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.GenseeLive">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="course_id" jdbcType="BIGINT" property="courseId" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="instructor" jdbcType="BIGINT" property="instructor" />
+    <result column="start_time" jdbcType="TIMESTAMP" property="startTime" />
+    <result column="end_time" jdbcType="TIMESTAMP" property="endTime" />
+    <result column="gensee_live_id" jdbcType="VARCHAR" property="genseeLiveId" />
+    <result column="gensee_organizer_join_url" jdbcType="VARCHAR" property="genseeOrganizerJoinUrl" />
+    <result column="gensee_panelist_join_url" jdbcType="VARCHAR" property="genseePanelistJoinUrl" />
+    <result column="gensee_attendee_join_url" jdbcType="VARCHAR" property="genseeAttendeeJoinUrl" />
+    <result column="gensee_number" jdbcType="VARCHAR" property="genseeNumber" />
+    <result column="gensee_attendee_a_short_join_url" jdbcType="VARCHAR" property="genseeAttendeeAShortJoinUrl" />
+    <result column="gensee_organizer_token" jdbcType="VARCHAR" property="genseeOrganizerToken" />
+    <result column="gensee_panelist_token" jdbcType="VARCHAR" property="genseePanelistToken" />
+    <result column="gensee_attendee_token" jdbcType="VARCHAR" property="genseeAttendeeToken" />
+    <result column="is_deleted" jdbcType="INTEGER" property="isDeleted" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+    <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+    <result column="description" jdbcType="LONGVARCHAR" property="description" />
+  </resultMap>
+</mapper>

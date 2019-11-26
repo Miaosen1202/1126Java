@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.AnnounceExtMapper">
+    <resultMap id="BaseResultMap0" type="com.wdcloud.lms.core.base.model.Announce">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="course_id" jdbcType="BIGINT" property="courseId" />
+        <result column="study_group_id" jdbcType="BIGINT" property="studyGroupId" />
+        <result column="topic" jdbcType="VARCHAR" property="topic" />
+        <result column="publish_time" jdbcType="TIMESTAMP" property="publishTime" />
+        <result column="allow_comment" jdbcType="INTEGER" property="allowComment" />
+        <result column="is_comment_before_see_reply" jdbcType="INTEGER" property="isCommentBeforeSeeReply" />
+        <result column="like_strategy" jdbcType="INTEGER" property="likeStrategy" />
+        <result column="is_order_by_like" jdbcType="INTEGER" property="isOrderByLike" />
+        <result column="view_count" jdbcType="INTEGER" property="viewCount" />
+        <result column="attachment_file_id" jdbcType="BIGINT" property="attachmentFileId" />
+        <result column="is_deleted" jdbcType="INTEGER" property="isDeleted" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+        <result column="content" jdbcType="LONGVARCHAR" property="content" />
+    </resultMap>
+    <select id="findCourseAnnounceNumber" resultType="java.util.Map">
+        select
+          course_id as courseId,
+          count(*) as announceNumber
+        from cos_announce
+        <where>
+            course_id in
+            <foreach collection="list" item="id" separator="," open="(" close=")">
+                #{id}
+            </foreach>
+        </where>
+        group by course_id
+    </select>
+
+    <!--<resultMap id="queryAssignListResultMap" type="com.wdcloud.lms.core.base.model.Assign" extends="com.wdcloud.lms.core.base.mapper.AssignMapper.BaseResultMap">-->
+    <!--</resultMap>-->
+    <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.vo.AnnounceVo" extends="BaseResultMap0">
+        <result column="isRead" jdbcType="INTEGER" property="isRead" />
+        <result column="createUserNickname" jdbcType="INTEGER" property="createUserNickname" />
+        <result column="createUserAvatar" jdbcType="INTEGER" property="createUserAvatar" />
+        <collection property="assign" columnPrefix="ass_" resultMap="com.wdcloud.lms.core.base.mapper.AssignMapper.BaseResultMap"/>
+    </resultMap>
+
+    <select id="searchCourseAnnounceByTeacher" resultMap="BaseResultMap">
+        select
+        t1.*,
+        t3.full_name createUserNickname,
+        t3.avatar_file_id createUserAvatar,
+        t2.id ass_id,
+        t2.course_id ass_course_id,
+        t2.origin_type ass_origin_type,
+        t2.origin_id ass_origin_id,
+        t2.assign_type ass_assign_type,
+        t2.assign_id ass_assign_id,
+        (CASE
+        WHEN t4.origin_id is null THEN 0
+        ELSE 1 END) isRead
+        from cos_announce t1
+          join sys_user t3 on t1.create_user_id=t3.id
+        join cos_assign t2 on t2.origin_type=${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@ANNOUNCE.getType()} and t2.origin_id=t1.id
+        left join (select  origin_id from cos_content_view_record where origin_type=3 and user_id=#{userId}) t4 on t4.origin_id=t1.id
+        <where>
+            t1.is_deleted=0
+            AND t1.course_id=#{courseId}
+            and t1.study_group_id is null
+            <if test="topic!=null and topic!=''">AND t1.topic like concat('%',#{topic},'%') </if>
+        </where>
+        ORDER BY t1.create_time desc
+    </select>
+    <select id="searchGroupAnnounceByTeacher" resultMap="BaseResultMap">
+        select
+        t1.*,
+        t3.full_name createUserNickname,
+        t3.avatar_file_id createUserAvatar,
+        (CASE
+        WHEN t4.origin_id is null THEN 0
+        ELSE 1 END) isRead
+        from cos_announce t1
+        join sys_user t3 on t1.create_user_id=t3.id
+        left join (select  origin_id from cos_content_view_record where origin_type=3 and user_id=#{userId}) t4 on t4.origin_id=t1.id
+        <where>
+            t1.is_deleted=0
+            AND t1.course_id=#{courseId}
+            and t1.study_group_id=#{studyGroupId}
+            <if test="topic!=null and topic!=''">AND t1.topic like concat('%',#{topic},'%') </if>
+        </where>
+        ORDER BY t1.create_time desc
+    </select>
+    <select id="searchCourseAnnounceByStudent" resultMap="BaseResultMap">
+        select
+        t1.*,
+        t3.full_name createUserNickname,
+        t3.avatar_file_id createUserAvatar,
+        t2.id ass_id,
+        t2.course_id ass_course_id,
+        t2.origin_type ass_origin_type,
+        t2.origin_id ass_origin_id,
+        t2.assign_type ass_assign_type,
+        t2.assign_id ass_assign_id,
+        (CASE
+          WHEN t4.origin_id is null THEN 0
+          ELSE 1 END) isRead
+        from cos_announce t1
+          join cos_assign_user t5 on t5.user_id=#{userId} and t5.origin_id=t1.id and t5.origin_type=6
+        join sys_user t3 on t1.create_user_id=t3.id
+        join cos_assign t2 on t2.origin_type=${@com.wdcloud.lms.core.base.enums.OriginTypeEnum@ANNOUNCE.getType()} and t2.origin_id=t1.id
+        left join (select  origin_id from cos_content_view_record where origin_type=3 and user_id=#{userId}) t4 on t4.origin_id=t1.id
+        <where>
+            t1.is_deleted=0
+            AND t1.course_id=#{courseId}
+            and t1.publish_time &lt;= now()
+            and t1.study_group_id is null
+            <if test="topic!=null and topic!=''">AND t1.topic like concat('%',#{topic},'%') </if>
+        </where>
+        ORDER BY t1.create_time desc
+    </select>
+    <select id="searchGroupAnnounceByStudent" resultMap="BaseResultMap">
+        select
+        t1.*,
+        t3.full_name createUserNickname,
+        t3.avatar_file_id createUserAvatar,
+        (CASE WHEN t4.origin_id is null THEN 0 ELSE 1 END) isRead
+        from cos_announce t1
+        join sys_user t3 on t1.create_user_id=t3.id
+        left join (select  origin_id from cos_content_view_record where origin_type=3 and user_id=#{userId}) t4 on t4.origin_id=t1.id
+        <where>
+            t1.is_deleted=0
+            AND t1.course_id=#{courseId}
+            and t1.publish_time &lt;= now()
+            and t1.study_group_id=#{studyGroupId}
+            <if test="topic!=null and topic!=''">AND t1.topic like concat('%',#{topic},'%') </if>
+        </where>
+        ORDER BY t1.create_time desc
+    </select>
+
+    <select id="findMessages" resultType="com.wdcloud.lms.core.base.vo.DialogVo">
+        SELECT
+             ar.id,
+             ar.content,
+             ar.attachment_file_id as attachmentFileId,
+             ar.create_user_id as userId,
+             ar.announce_id as announceId,
+             ar.announce_reply_id as announceReplyId,
+             ar.create_time as createTime,
+             a.topic as announceTitle,
+             u.full_name as username
+        FROM cos_announce_reply ar
+         LEFT JOIN cos_announce a ON ar.announce_id = a.id
+         LEFT JOIN sys_user u ON ar.create_user_id = u.id
+        WHERE
+         a.course_id = #{courseId}
+         and a.is_deleted = ${@com.wdcloud.lms.core.base.enums.Status@NO.getStatus()}
+         and (
+         ar.announce_reply_id IN (
+          SELECT id from cos_announce_reply WHERE create_user_id = #{userId}
+        )
+         or a.create_user_id = #{userId}
+        )
+        order by
+        ar.create_time desc
+    </select>
+</mapper>

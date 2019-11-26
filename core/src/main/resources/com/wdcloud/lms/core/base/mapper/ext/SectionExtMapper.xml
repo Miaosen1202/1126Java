@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.SectionExtMapper">
+
+    <select id="findSectionListByCourseId" resultType="com.wdcloud.lms.core.base.vo.SectionVo">
+        SELECT
+            t1.id sectionId,t1.`name` sectionName,count(t2.id) userCount
+        from cos_section t1
+                 left JOIN
+                 cos_section_user t2
+                 on t1.course_id=t2.course_id and t1.id=t2.section_id and t2.registry_status=2
+        where t1.course_id=#{courseId}
+        GROUP BY t1.id
+    </select>
+
+    <select id="findBySisIds" resultMap="com.wdcloud.lms.core.base.mapper.SectionMapper.BaseResultMap">
+        select
+          *
+        from cos_section s
+        <where>
+            and course_id in (
+                select id from cos_course c where c.org_id in (
+                    select id from sys_org where tree_id like concat(#{rootOrgTreeId}, "%")
+                )
+            )
+            <if test="sisIds != null and sisIds.size() > 0">
+                and s.sis_id in
+                <foreach collection="sisIds" item="sisId" separator="," open="(" close=")">
+                    #{sisId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+</mapper>

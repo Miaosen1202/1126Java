@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.CourseUserExtMapper">
+
+    <resultMap id="SectionUserDetailVoResultMap"
+               type="com.wdcloud.lms.core.base.vo.SectionUserDetailVo">
+        <id property="id" column="id"/>
+        <result property="registryStatus" column="registryStatus"/>
+        <result property="registryOrigin" column="registryOrigin"/>
+        <result property="createTime" column="createTime"/>
+
+        <result property="sectionId" column="sectionId"/>
+        <result property="sectionName" column="sectionName"/>
+
+        <result property="roleId" column="roleId"/>
+        <result property="roleName" column="roleName"/>
+    </resultMap>
+
+    <resultMap id="CourseUserDetailVoResultMap" type="com.wdcloud.lms.core.base.vo.CourseUserDetailVo">
+        <id property="userId" column="userId"/>
+        <result property="sisId" column="sis_id"/>
+        <result property="nickname" column="nickname"/>
+        <result property="username" column="username"/>
+
+        <result property="firstName" column="first_name"/>
+        <result property="lastName" column="last_name"/>
+        <result property="fullName" column="full_name"/>
+        <result property="status" column="status"/>
+        <result property="email" column="email"/>
+        <result property="isActive" column="is_active"/>
+        <result property="lastActivity" column="last_activity"/>
+
+        <result property="avatarFileUrl" column="avatar_file_id"/>
+
+        <association property="sectionUserDetailVos" columnPrefix="sectionUser_"
+                     resultMap="SectionUserDetailVoResultMap"/>
+    </resultMap>
+
+    <resultMap id="CourseUserResultMap" type="com.wdcloud.lms.core.base.vo.UserCourseVo">
+        <id property="userId" column="userId"/>
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+
+    </resultMap>
+
+    <select id="findCourseUserDetail" resultMap="CourseUserDetailVoResultMap">
+        select
+        u.id as userId
+        , u.sis_id
+        , u.nickname
+        , u.username
+        , u.first_name
+        , u.last_name
+        , u.full_name
+        , u.email
+        , u.status
+        , u.avatar_file_id
+        , cu.is_active
+        , u.last_login_time as last_activity
+        , su.registry_status as sectionUser_registryStatus
+        , su.registry_origin as sectionUser_registryOrigin
+        , su.create_time as sectionUser_createTime
+        , su.role_id as sectionUser_roleId
+        , r.role_name as sectionUser_roleName
+        , su.section_id as sectionUser_sectionId
+        , s.name as sectionUser_sectionName
+        from cos_course_user cu
+        join cos_section_user su on cu.user_id = su.user_id and cu.course_id = su.course_id
+        join sys_user u on u.id = cu.user_id
+        join cos_section s on su.section_id = s.id and cu.course_id = s.course_id
+        join p_role r on su.role_id = r.role_type
+        <where>
+            cu.course_id = #{courseId}
+            <if test="name != null and name != ''">
+                and (
+                u.username like concat("%", #{name}, "%")
+                or u.full_name like concat("%", #{name}, "%")
+                )
+            </if>
+            <if test="roleId != null">
+                and su.role_id = #{roleId}
+            </if>
+        </where>
+    </select>
+
+    <select id="findNotPendingUsers" resultMap="com.wdcloud.lms.core.base.mapper.CourseUserMapper.BaseResultMap">
+        select
+        *
+        from
+        cos_course_user
+        <where>
+            course_id = #{courseId}
+            and user_id in (
+            select su.user_id
+            from cos_section_user su
+            where su.course_id = #{courseId}
+            and su.registry_status = ${@com.wdcloud.lms.core.base.enums.UserRegistryStatusEnum@JOINED.getStatus()}
+            <if test="roleId != null">
+                and su.role_id = #{roleId}
+            </if>
+            )
+        </where>
+    </select>
+
+    <select id="findBySisIds" resultMap="com.wdcloud.lms.core.base.mapper.CourseUserMapper.BaseResultMap">
+        select
+        cu.*
+        from cos_course_user cu join sys_user u on cu.user_id = u.id
+        <where>
+            u.org_tree_id like concat(#{rootOrgTreeId}, "%")
+            <if test="sisIds != null and sisIds.size() > 0">
+                and u.sis_id in
+                <foreach collection="sisIds" item="sisId" open="(" close=")" separator=",">
+                    #{sisId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <!-- 查询某一课程Id下的所有用户 -->
+    <select id="findUserByCourseId" resultMap="com.wdcloud.lms.core.base.mapper.CourseUserMapper.BaseResultMap">
+        SELECT
+        cu.`id`,
+        cu.`course_id`,
+        cu.`user_id`,
+        cu.`is_favorite`,
+        cu.`cover_color`,
+        cu.`course_alias`,
+        cu.`seq`,
+        cu.`is_active`,
+        cu.`create_time`,
+        cu.`update_time`,
+        cu.`create_user_id`,
+        cu.`update_user_id`
+        FROM cos_course_user as cu
+        <where>
+            cu.is_active=1 and
+            cu.course_id=#{courseId};
+        </where>
+    </select>
+
+    <!-- 如果班级下用户已经不存在用户时，将用户从课程用户表中移除 -->
+    <!-- fixme 优化处理 -->
+    <delete id="deleteUnjoinSectionUsers" parameterType="java.util.List">
+        delete from cos_course_user
+        where course_id in
+        <foreach collection="courseIds" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        and user_id not in (
+        select user_id from cos_section_user su
+        where su.course_id in
+        <foreach collection="courseIds" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        group by section_id, user_id
+        )
+    </delete>
+    <select id="getUserCourseList"  resultMap="CourseUserResultMap">
+        SELECT
+            b.id,
+            b.`name`
+        FROM
+            cos_course_user a
+                LEFT JOIN cos_course b ON a.course_id = b.id
+        WHERE
+            b.is_deleted = 0
+          AND a.is_favorite = 1
+          AND a.user_id = #{userId}
+    </select>
+</mapper>

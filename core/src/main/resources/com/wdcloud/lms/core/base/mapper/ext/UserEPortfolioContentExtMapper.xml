@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.UserEPortfolioContentExtMapper">
+
+    <delete id="deleteByUserEPortfolioId" parameterType="long">
+        delete content
+        from sys_user_e_portfolio_content content
+        left join sys_user_e_portfolio_page page on page.id = content.e_portfolio_page_id
+        left join sys_user_e_portfolio_column ecolumn on ecolumn.id = page.e_portfolio_column_id
+        left join sys_user_e_portfolio portfolio on portfolio.id = ecolumn.e_portfolio_id
+        <where>
+            portfolio.id = #{ePortfolioId}
+        </where>
+    </delete>
+
+    <delete id="deleteByUserEPortfolioColumnId" parameterType="long">
+        delete content
+        from sys_user_e_portfolio_content content
+        left join sys_user_e_portfolio_page page on page.id = content.e_portfolio_page_id
+        left join sys_user_e_portfolio_column ecolumn on ecolumn.id = page.e_portfolio_column_id
+        <where>
+            ecolumn.id = #{ePortfolioColumnId}
+        </where>
+    </delete>
+
+    <delete id="deleteByUserEPortfolioPageId" parameterType="long">
+        delete content
+        from sys_user_e_portfolio_content content
+        left join sys_user_e_portfolio_page page on page.id = content.e_portfolio_page_id
+        <where>
+            page.id = #{ePortfolioPageId}
+        </where>
+    </delete>
+</mapper>

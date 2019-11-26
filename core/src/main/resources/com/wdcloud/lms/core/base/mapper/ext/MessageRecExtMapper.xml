@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.MessageRecExtMapper">
+
+    <insert id="batchSave" keyProperty="id" useGeneratedKeys="true">
+        insert into cos_message_rec (
+        send_id,
+        rec_id,
+        subject_id,
+        message_id,
+        is_default,
+        is_read,
+        create_user_id,
+        update_user_id
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.sendId},
+            #{item.recId},
+            #{item.subjectId},
+            #{item.messageId},
+            #{item.isDefault},
+            #{item.isRead},
+            #{item.createUserId},
+            #{item.updateUserId}
+            )
+        </foreach>
+    </insert>
+
+    <resultMap id="findRecSubjectListMap" type="com.wdcloud.lms.core.base.vo.msg.MessageSubjectVO">
+        <result column="rec_id" jdbcType="INTEGER" property="recId" />
+        <result column="subject_id" jdbcType="INTEGER" property="subjectId" />
+        <result column="message_subject" jdbcType="VARCHAR" property="messageSubject" />
+        <result column="course_id" jdbcType="INTEGER" property="courseId" />
+        <result column="courseName" jdbcType="VARCHAR" property="courseName" />
+        <result column="isStar" jdbcType="INTEGER" property="isStar" />
+        <result column="msgTotal" jdbcType="INTEGER" property="msgTotal" />
+    </resultMap>
+    <select id="findRecSubjectList" resultMap="findRecSubjectListMap">
+        select
+        t1.rec_id,
+        t1.subject_id,
+        t2.message_subject,
+        t2.course_id,
+        t2.create_time,
+        t3.name courseName,
+        case
+          when t4.id is null then 0
+          else 1
+        end isStar
+        from
+        cos_message_rec t1
+        join cos_message  t2 on t2.id=t1.subject_id
+        join cos_course t3 on t3.id=t2.course_id
+        left join  cos_message_subject_user_star t4 on t4.user_id=t1.rec_id and t4.subject_id=t1.subject_id
+        where
+        t1.rec_id=#{loginUserId}
+        and t1.is_delete=0 and t1.is_default=0
+        and t2.course_id in <foreach collection="courseIds" item="courseId" separator="," open="(" close=")">#{courseId}</foreach>
+        <if test="searchKey!=null and searchKey!=''">
+            and t2.message_subject like concat('%',#{searchKey},'%')
+        </if>
+        <if test='isStar =="1" '>
+           and  t4.id is not null
+        </if>
+        group by t1.rec_id,t1.subject_id,t2.message_subject,t2.course_id,t3.name,t4.id,t2.create_time
+        order by t2.update_time desc
+    </select>
+
+    <resultMap id="myLastestRecMsg" type="com.wdcloud.lms.core.base.vo.msg.MsgItemVO">
+        <result column="is_read" jdbcType="INTEGER" property="isRead" />
+        <result column="message_id" jdbcType="INTEGER" property="messageId" />
+        <result column="subject_id" jdbcType="BIGINT" property="subjectId" />
+        <result column="course_id" jdbcType="BIGINT" property="courseId" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+        <result column="create_user_id" jdbcType="BIGINT" property="createUserId" />
+        <result column="update_user_id" jdbcType="BIGINT" property="updateUserId" />
+        <result column="message_subject" jdbcType="LONGVARCHAR" property="messageSubject" />
+        <result column="message_text" jdbcType="LONGVARCHAR" property="messageText" />
+        <result column="is_private" jdbcType="INTEGER" property="isPrivate" />
+        <result column="send_id" jdbcType="BIGINT" property="sendId" />
+        <result column="username" jdbcType="VARCHAR" property="sendUsername" />
+        <result column="avatar_file_id" jdbcType="VARCHAR" property="sendAvatarFileId" />
+        <collection property="recList" columnPrefix="recList_" ofType="com.wdcloud.lms.core.base.vo.UserVo">
+            <result column="rec_id" jdbcType="BIGINT" property="id" />
+            <result column="username" jdbcType="VARCHAR" property="username" />
+        </collection>
+    </resultMap>
+    <select id="myLastestRecMsg" resultMap="myLastestRecMsg">
+        select tt.*,
+               t4.rec_id recList_rec_id,
+               t5.username recList_username
+        from
+            (
+                select
+                    t1.is_read,t1.message_id, t1.send_id,t1.subject_id,
+                    t1.create_time, t1.update_time, t1.create_user_id, t1.update_user_id,
+                    t2.course_id, t2.message_subject, t2.message_text,t2.is_private,
+                    t3.avatar_file_id,
+                    t3.username
+                from
+                    cos_message_rec t1
+                        join cos_message t2 on t2.id=t1.message_id
+                        join sys_user t3 on t3.id=t1.send_id
+                where t1.is_delete=0
+                  and t1.rec_id=#{recId}
+                  and t1.subject_id=#{subjectId}
+                order by t1.create_time desc
+                         limit 1
+            ) tt
+                left join cos_message_rec t4 on t4.message_id=tt.message_id and t4.is_default=0
+                left join sys_user t5 on t5.id=t4.rec_id
+    </select>
+
+    <select id="findRecMsgListBySubject" resultMap="myLastestRecMsg">
+        select tt.*,
+               t4.rec_id recList_rec_id,
+               t5.username recList_username
+        from
+            (
+                select
+                    t1.is_read,t1.message_id, t1.send_id,t1.subject_id,
+                    t2.create_time, t2.update_time, t2.create_user_id, t2.update_user_id,
+                    t2.course_id, t2.message_subject, t2.message_text,t2.is_private,
+                    t3.avatar_file_id,
+                    t3.username
+                from
+                    cos_message_rec t1
+                        join cos_message t2 on t2.id=t1.message_id
+                        join sys_user t3 on t3.id=t1.send_id
+                where t1.is_delete=0
+                  and t1.rec_id=#{loginUserId}
+                  and t1.subject_id=#{subjectId}
+            ) tt
+                left join cos_message_rec t4 on t4.message_id=tt.message_id and t4.is_default=0
+                left join sys_user t5 on t5.id=t4.rec_id
+            order by tt.create_time desc
+    </select>
+    <select id="getUnreadNum" resultType="java.lang.Integer">
+        select count(*)
+        from cos_message_rec t2
+        join cos_message t1 on t2.message_id=t1.id
+        where t1.course_id in <foreach collection="courseIds" open="(" close=")" separator="," item="id">#{id}</foreach>
+        and t2.rec_id=#{loginUserId}
+        and t2.is_read=0 and t2.is_delete=0
+    </select>
+</mapper>

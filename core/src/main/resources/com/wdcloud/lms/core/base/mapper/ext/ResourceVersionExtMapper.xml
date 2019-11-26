@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.ResourceVersionExtMapper">
+    <select id="getByResourceId" resultType="com.wdcloud.lms.core.base.vo.resource.ResourceVersionVO">
+        select rv.id,
+               ru.share_range,
+               rv.version,
+               rv.description
+        from res_resource_version rv
+        left join res_resource r on r.id = rv.resource_id
+        left join res_resource_update ru on ru.resource_id = r.id
+        where r.id = #{resourceId}
+        order by rv.create_time desc, rv.id desc
+    </select>
+
+</mapper>

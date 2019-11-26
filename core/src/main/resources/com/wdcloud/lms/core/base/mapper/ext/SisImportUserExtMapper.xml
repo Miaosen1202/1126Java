@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.SisImportUserExtMapper">
+
+    <insert id="batchSaveOrUpdate" keyProperty="id" useGeneratedKeys="true">
+        insert into sys_sis_import_user (
+            `id`,
+            `batch_code`,
+            `target_id`,
+            `org_tree_id`,
+            `user_id`,
+            `login_id`,
+            `password`,
+            `first_name`,
+            `last_name`,
+            `full_name`,
+            `sortable_name`,
+            `short_name`,
+            `account_id`,
+            `email`,
+            `operation`,
+            `op_user_id`,
+            `op_user_org_tree_id`
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.id},
+                #{item.batchCode},
+                #{item.targetId},
+                #{item.orgTreeId},
+                #{item.userId},
+                #{item.loginId},
+                #{item.password},
+                #{item.firstName},
+                #{item.lastName},
+                #{item.fullName},
+                #{item.sortableName},
+                #{item.shortName},
+                #{item.accountId},
+                #{item.email},
+                #{item.operation},
+                #{item.opUserId},
+                #{item.opUserOrgTreeId}
+            )
+        </foreach>
+        on duplicate key update
+            `batch_code` = values(`batch_code`),
+            `target_id` = values(`target_id`),
+            `org_tree_id` = values(`org_tree_id`),
+            `user_id` = values(`user_id`),
+            `login_id` = values(`login_id`),
+            `password` = values(`password`),
+            `first_name` = values(`first_name`),
+            `last_name` = values(`last_name`),
+            `full_name` = values(`full_name`),
+            `sortable_name` = values(`sortable_name`),
+            `short_name` = values(`short_name`),
+            `account_id` = values(`account_id`),
+            `email` = values(`email`),
+            `operation` = values(`operation`),
+            `op_user_id` = values(`op_user_id`),
+            `op_user_org_tree_id` = values(`op_user_org_tree_id`)
+    </insert>
+</mapper>

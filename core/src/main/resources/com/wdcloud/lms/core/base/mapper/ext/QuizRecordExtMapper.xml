@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.QuizRecordExtMapper">
+
+    <!-- 做题次数统计-->
+
+    <select id="getTotalRecord" resultType="Integer">
+
+        SELECT ifnull(count(*),0)
+        FROM cos_quiz_record
+        <where>
+            quiz_id=#{quizId} and create_user_id=#{createUserId}
+        </where>
+
+    </select>
+
+
+    <!-- 依据测试ID及用户信息查询答题记录 -->
+    <resultMap id="getQuizRecordResultMap" type="com.wdcloud.lms.core.base.vo.QuizRecordVO"
+               extends="com.wdcloud.lms.core.base.mapper.QuizRecordMapper.BaseResultMap">
+        <association property="grade" columnPrefix="grade_"
+                     resultMap="com.wdcloud.lms.core.base.mapper.GradeMapper.BaseResultMap">
+        </association>
+    </resultMap>
+    <select id="getQuizRecords" resultMap="getQuizRecordResultMap">
+
+        SELECT
+        cqr.id,
+        cqr.quiz_id,
+        cqr.quiz_version,
+        cqr.is_submit,
+        cqr.is_last_time,
+        cqr.start_time,
+        cqr.submit_time,
+        cqr.due_time,
+        cqr.tester_id,
+        cqr.create_time,
+        cqr.update_time,
+        cqr.create_user_id,
+        cqr.update_user_id,
+
+        cg.id as grade_id,
+        cg.course_id as grade_course_id,
+        cg.assignment_group_item_id as grade_assignment_group_item_id,
+        cg.origin_type as grade_origin_type,
+        cg.origin_id as grade_origin_id,
+        cg.score as grade_score,
+        cg.grade_score as grade_grade_score,
+        cg.user_id as grade_user_id,
+        cg.grader_id as grade_grader_id,
+        cg.create_time as grade_create_time,
+        cg.update_time as grade_update_time,
+        cg.create_user_id as grade_create_user_id,
+        cg.update_user_id as grade_update_user_id
+
+        FROM cos_quiz_record as cqr
+        left join cos_history_grade as cg on cg.origin_id=cqr.id and cg.origin_type=3
+        <where>
+            cqr.quiz_id=#{quizId}
+            and cqr.create_user_id=#{createUserId}
+
+            order by cqr.create_time desc
+        </where>
+
+
+    </select>
+
+    <select id="getQuizQuestionRecordList" resultType="java.util.Map">
+        SELECT
+            SUM(grade_score) gradeScore
+        FROM
+            cos_quiz_question_record
+        WHERE
+            quiz_record_id IN (
+                SELECT
+                    id
+                FROM
+                    cos_quiz_record
+                WHERE
+                    quiz_id = #{quizId}
+                    AND tester_id = #{userId}
+            )
+        GROUP BY
+	      quiz_record_id
+    </select>
+</mapper>

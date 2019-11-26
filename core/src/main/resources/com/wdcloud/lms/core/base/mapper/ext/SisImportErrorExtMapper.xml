@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.ext.SisImportErrorExtMapper">
+
+    <insert id="batchSave" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_sis_import_error (
+            batch_code,
+            file_name,
+            error_code,
+            row_number,
+            field_name,
+            field_value,
+            op_user_id,
+            op_user_org_tree_id
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.batchCode},
+                #{item.fileName},
+                #{item.errorCode},
+                #{item.rowNumber},
+                #{item.fieldName},
+                #{item.fieldValue},
+                #{item.opUserId},
+                #{item.opUserOrgTreeId}
+            )
+        </foreach>
+    </insert>
+</mapper>

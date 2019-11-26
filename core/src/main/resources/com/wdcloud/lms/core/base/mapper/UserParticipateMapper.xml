@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdcloud.lms.core.base.mapper.UserParticipateMapper">
+  <resultMap id="BaseResultMap" type="com.wdcloud.lms.core.base.model.UserParticipate">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="course_id" jdbcType="BIGINT" property="courseId" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="origin_type" jdbcType="INTEGER" property="originType" />
+    <result column="origin_id" jdbcType="BIGINT" property="originId" />
+    <result column="operation" jdbcType="INTEGER" property="operation" />
+    <result column="target_name" jdbcType="VARCHAR" property="targetName" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+</mapper>
